@@ -85,7 +85,7 @@
 	});
 
 	function buildCss(config) {
-	  var cssText = '\n    .squarebook_wrapper {\n        width:100%;\n        height:100%;\n        background-color: ' + (config.backgroundColor || '#0e1122') + '\n    }\n\n    .squarebook_square {\n      background-color: ' + (config.squareColor || '#5f7278') + ';\n      float:left;\n      margin:1px;\n    }\n  ';
+	  var cssText = '\n    .squarebook_wrapper {\n        width:100%;\n        height:100%;\n        background-color: ' + (config.backgroundColor || '#0e1122') + ';\n        -khtml-opacity: ' + (config.opacity || .8) + ';\n        opacity: ' + (config.backgroundColor || .8) + ';\n        position:relative;\n    }\n\n    .squarebook_square {\n      background-color: ' + (config.squareColor || '#282754') + ';\n      float:left;\n      margin:1px;\n    }\n\n    .squarebook_square:hover {\n      background-color: ' + (config.squareColorHover || '#595881') + ';\n    }\n\n    .squarebook_controls {\n      background-color:black;\n      position:absolute;\n      bottom:0;\n    }\n\n    .squarebook_color {\n      float:right;\n      border: 1px dashed #555555;\n    }\n\n    .squarebook_button {\n      float:left;\n      color:#777777;\n      text-align:center;\n    }\n  ';
 
 	  return cssText;
 	}
@@ -116,10 +116,13 @@
 	});
 	var _config = void 0;
 	var wrapper = null;
+	var controlsWrapper = null;
+	var colors = [{ name: 'red', hex: '#FF0000' }, { name: 'green', hex: '#00FF00' }, { name: 'blue', hex: '#0000FF' }, { name: 'yellow', hex: '#FFFF00' }, { name: 'pink', hex: '#FF00FF' }, { name: 'white', hex: '#FFFFFF' }];
 
 	function buildGrid() {
 	  createWrapper();
 	  createSquares();
+	  createControls();
 	}
 
 	function createWrapper() {
@@ -130,8 +133,9 @@
 	}
 
 	function createSquares() {
+	  var controlsHeight = wrapper.clientHeight / 10;
 	  var squareWidth = wrapper.clientWidth / 50 - 2;
-	  var squareHeight = wrapper.clientHeight / 30 - 2;
+	  var squareHeight = (wrapper.clientHeight - controlsHeight) / 30 - 2;
 
 	  for (var i = 0; i < 30; i++) {
 	    var row = document.createElement('div');
@@ -146,6 +150,47 @@
 	      row.appendChild(squareDiv);
 	    }
 	  }
+	}
+
+	function createControls() {
+	  controlsWrapper = document.createElement('div');
+	  controlsWrapper.className = 'squarebook_controls';
+	  controlsWrapper.style.width = wrapper.clientWidth + 'px';
+	  controlsWrapper.style.height = wrapper.clientHeight / 10 + 'px';
+	  wrapper.appendChild(controlsWrapper);
+	  createColors();
+	  createButtons();
+	}
+
+	function createColors() {
+	  for (var i = 0; i < colors.length; i++) {
+	    var color = document.createElement('div');
+	    color.className = 'squarebook_color';
+	    color.style.width = controlsWrapper.clientWidth / 10 - 2 + 'px';
+	    color.style.height = controlsWrapper.clientHeight - 2 + 'px';
+	    color.style.backgroundColor = colors[i].hex;
+	    controlsWrapper.appendChild(color);
+	  }
+	}
+
+	function createButtons() {
+	  var button1 = document.createElement('div');
+	  button1.className = 'squarebook_button';
+	  button1.style.width = controlsWrapper.clientWidth / 10 * 2 - 2 + 'px';
+	  button1.style.height = controlsWrapper.clientHeight - 2 + 'px';
+	  controlsWrapper.appendChild(button1);
+
+	  var button1Text = document.createTextNode('<');
+	  button1.appendChild(button1Text);
+
+	  var button2 = document.createElement('div');
+	  button2.className = 'squarebook_button';
+	  button2.style.width = controlsWrapper.clientWidth / 10 * 2 - 2 + 'px';
+	  button2.style.height = controlsWrapper.clientHeight - 2 + 'px';
+	  controlsWrapper.appendChild(button2);
+
+	  var button2Text = document.createTextNode('>');
+	  button2.appendChild(button2Text);
 	}
 
 	exports.default = function (config) {

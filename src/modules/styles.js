@@ -5,13 +5,37 @@ function buildCss(config) {
     .squarebook_wrapper {
         width:100%;
         height:100%;
-        background-color: ${config.backgroundColor || '#0e1122'}
+        background-color: ${config.backgroundColor || '#0e1122'};
+        -khtml-opacity: ${config.opacity || .8};
+        opacity: ${config.backgroundColor || .8};
+        position:relative;
     }
 
     .squarebook_square {
-      background-color: ${config.squareColor || '#5f7278'};
+      background-color: ${config.squareColor || '#282754'};
       float:left;
       margin:1px;
+    }
+
+    .squarebook_square:hover {
+      background-color: ${config.squareColorHover || '#595881'};
+    }
+
+    .squarebook_controls {
+      background-color:black;
+      position:absolute;
+      bottom:0;
+    }
+
+    .squarebook_color {
+      float:right;
+      border: 1px dashed #555555;
+    }
+
+    .squarebook_button {
+      float:left;
+      color:#777777;
+      text-align:center;
     }
   `;
 
