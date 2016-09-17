@@ -1,0 +1,33 @@
+{
+  "name": "squarebook",
+  "version": "1.0.0",
+  "description": "js drawing guestbook",
+  "main": "index.js",
+  "scripts": {
+    "build": "webpack",
+    "watch" : "webpack --watch",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ferflores/squarebook.git"
+  },
+  "keywords": [
+    "guestbook"
+  ],
+  "author": "Fernando Flores ferflores@gmail.com",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/ferflores/squarebook/issues"
+  },
+  "homepage": "https://github.com/ferflores/squarebook#readme",
+  "devDependencies": {
+    "babel-core": "^6.14.0",
+    "babel-loader": "^6.2.5",
+    "babel-preset-es2015": "^6.14.0",
+    "webpack": "^1.13.2"
+  },
+  "dependencies": {
+    "axios": "^0.14.0"
+  }
+}

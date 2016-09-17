@@ -1,0 +1,34 @@
+
+function buildCss(config) {
+  let cssText =
+    `
+    .squarebook_wrapper {
+        width:100%;
+        height:100%;
+        background-color: ${config.backgroundColor || '#0e1122'}
+    }
+
+    .squarebook_square {
+      background-color: ${config.squareColor || '#5f7278'};
+      float:left;
+      margin:1px;
+    }
+  `;
+
+    return cssText;
+}
+
+export default config => {
+  let css = buildCss(config);
+  let style = document.createElement('style');
+  let head = document.head || document.getElementsByTagName('head')[0];
+  style.type = 'text/css';
+
+  if (style.styleSheet){
+    style.styleSheet.cssText = css;
+  } else {
+    style.appendChild(document.createTextNode(css));
+  }
+
+  head.appendChild(style);
+}
