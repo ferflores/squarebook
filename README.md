@@ -1,3 +1,5 @@
+[![npm version](https://img.shields.io/npm/v/squarebook.svg?style=flat-square)](https://www.npmjs.com/package/squarebook)
+
 # squarebook
 
 This is a drawing guestbook, visitors of your site can leave you a drawing.
