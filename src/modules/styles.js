@@ -9,6 +9,7 @@ function buildCss(config) {
         -khtml-opacity: ${config.opacity || .8};
         opacity: ${config.backgroundColor || .8};
         position:relative;
+        font-family:Arial;
     }
 
     .squarebook_square {
@@ -30,12 +31,35 @@ function buildCss(config) {
     .squarebook_color {
       float:right;
       border: 1px dashed #555555;
+      cursor:pointer;
     }
 
-    .squarebook_button {
-      float:left;
+    .squarebook_color:hover {
+      border: 1px solid #FFFFFF;
+    }
+
+    .squarebook_navButton {
+      float:right;
       color:#777777;
       text-align:center;
+      cursor:pointer;
+      -webkit-touch-callout: none;
+      -webkit-user-select: none;
+      -khtml-user-select: none;
+      -moz-user-select: none;
+      -ms-user-select: none;
+      user-select: none;
+      font-weight:none;
+    }
+
+    .squarebook_navButton:hover {
+      background-color:#121645;
+    }
+
+    .squarebook_nameInput {
+      border:none;
+      background-color:black;
+      color:white;
     }
   `;
 

@@ -50,24 +50,38 @@
 
 	var _styles2 = _interopRequireDefault(_styles);
 
-	var _grid = __webpack_require__(2);
+	var _ui = __webpack_require__(3);
 
-	var _grid2 = _interopRequireDefault(_grid);
+	var _ui2 = _interopRequireDefault(_ui);
 
 	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 	var _config = {
+	  state: {
+	    elements: {
+	      container: null,
+	      wrapper: null,
+	      squares: [],
+	      controlsWrapper: null,
+	      colors: [],
+	      nextButton: null,
+	      prevButton: null,
+	      clearButton: null,
+	      saveButton: null,
+	      nameInput: null
+	    }
+	  },
 	  backgroundColor: '#0e1122'
 	};
 
 	function render() {
 	  (0, _styles2.default)(_config);
-	  (0, _grid2.default)(_config).buildGrid();
+	  (0, _ui2.default)(_config).build();
 	}
 
 	function squarebook(config) {
 	  if (config) {
-	    _config = config;
+	    _config = Object.assign(_config, config);
 	  }
 	  render();
 	}
@@ -85,7 +99,7 @@
 	});
 
 	function buildCss(config) {
-	  var cssText = '\n    .squarebook_wrapper {\n        width:100%;\n        height:100%;\n        background-color: ' + (config.backgroundColor || '#0e1122') + ';\n        -khtml-opacity: ' + (config.opacity || .8) + ';\n        opacity: ' + (config.backgroundColor || .8) + ';\n        position:relative;\n    }\n\n    .squarebook_square {\n      background-color: ' + (config.squareColor || '#282754') + ';\n      float:left;\n      margin:1px;\n    }\n\n    .squarebook_square:hover {\n      background-color: ' + (config.squareColorHover || '#595881') + ';\n    }\n\n    .squarebook_controls {\n      background-color:black;\n      position:absolute;\n      bottom:0;\n    }\n\n    .squarebook_color {\n      float:right;\n      border: 1px dashed #555555;\n    }\n\n    .squarebook_button {\n      float:left;\n      color:#777777;\n      text-align:center;\n    }\n  ';
+	  var cssText = '\n    .squarebook_wrapper {\n        width:100%;\n        height:100%;\n        background-color: ' + (config.backgroundColor || '#0e1122') + ';\n        -khtml-opacity: ' + (config.opacity || .8) + ';\n        opacity: ' + (config.backgroundColor || .8) + ';\n        position:relative;\n        font-family:Arial;\n    }\n\n    .squarebook_square {\n      background-color: ' + (config.squareColor || '#282754') + ';\n      float:left;\n      margin:1px;\n    }\n\n    .squarebook_square:hover {\n      background-color: ' + (config.squareColorHover || '#595881') + ';\n    }\n\n    .squarebook_controls {\n      background-color:black;\n      position:absolute;\n      bottom:0;\n    }\n\n    .squarebook_color {\n      float:right;\n      border: 1px dashed #555555;\n      cursor:pointer;\n    }\n\n    .squarebook_color:hover {\n      border: 1px solid #FFFFFF;\n    }\n\n    .squarebook_navButton {\n      float:right;\n      color:#777777;\n      text-align:center;\n      cursor:pointer;\n      -webkit-touch-callout: none;\n      -webkit-user-select: none;\n      -khtml-user-select: none;\n      -moz-user-select: none;\n      -ms-user-select: none;\n      user-select: none;\n      font-weight:none;\n    }\n\n    .squarebook_navButton:hover {\n      background-color:#121645;\n    }\n\n    .squarebook_nameInput {\n      border:none;\n      background-color:black;\n      color:white;\n    }\n  ';
 
 	  return cssText;
 	}
@@ -106,7 +120,8 @@
 	};
 
 /***/ },
-/* 2 */
+/* 2 */,
+/* 3 */
 /***/ function(module, exports) {
 
 	'use strict';
@@ -114,28 +129,32 @@
 	Object.defineProperty(exports, "__esModule", {
 	  value: true
 	});
-	var _config = void 0;
+	var _config = null;
+	var elements = null;
 	var wrapper = null;
 	var controlsWrapper = null;
+	var adjusting = false;
+
 	var colors = [{ name: 'red', hex: '#FF0000' }, { name: 'green', hex: '#00FF00' }, { name: 'blue', hex: '#0000FF' }, { name: 'yellow', hex: '#FFFF00' }, { name: 'pink', hex: '#FF00FF' }, { name: 'white', hex: '#FFFFFF' }];
 
-	function buildGrid() {
+	function build() {
 	  createWrapper();
 	  createSquares();
 	  createControls();
+	  bindEvents();
 	}
 
 	function createWrapper() {
 	  wrapper = document.createElement('div');
 	  wrapper.className = 'squarebook_wrapper';
 	  _config.container.appendChild(wrapper);
+	  elements.container = _config.container;
+	  elements.wrapper = wrapper;
+
 	  return wrapper;
 	}
 
 	function createSquares() {
-	  var controlsHeight = wrapper.clientHeight / 10;
-	  var squareWidth = wrapper.clientWidth / 50 - 2;
-	  var squareHeight = (wrapper.clientHeight - controlsHeight) / 30 - 2;
 
 	  for (var i = 0; i < 30; i++) {
 	    var row = document.createElement('div');
@@ -145,9 +164,8 @@
 	    for (var j = 0; j < 50; j++) {
 	      var squareDiv = document.createElement('div');
 	      squareDiv.className = 'squarebook_square';
-	      squareDiv.style.width = squareWidth + 'px';
-	      squareDiv.style.height = squareHeight + 'px';
 	      row.appendChild(squareDiv);
+	      elements.squares.push(squareDiv);
 	    }
 	  }
 	}
@@ -155,49 +173,132 @@
 	function createControls() {
 	  controlsWrapper = document.createElement('div');
 	  controlsWrapper.className = 'squarebook_controls';
-	  controlsWrapper.style.width = wrapper.clientWidth + 'px';
-	  controlsWrapper.style.height = wrapper.clientHeight / 10 + 'px';
 	  wrapper.appendChild(controlsWrapper);
+	  elements.controlsWrapper = controlsWrapper;
+	  createNavButtons();
 	  createColors();
-	  createButtons();
+	  createInputs();
+	  adjustUI();
 	}
 
 	function createColors() {
 	  for (var i = 0; i < colors.length; i++) {
 	    var color = document.createElement('div');
 	    color.className = 'squarebook_color';
-	    color.style.width = controlsWrapper.clientWidth / 10 - 2 + 'px';
-	    color.style.height = controlsWrapper.clientHeight - 2 + 'px';
 	    color.style.backgroundColor = colors[i].hex;
 	    controlsWrapper.appendChild(color);
+	    elements.colors.push(color);
 	  }
 	}
 
-	function createButtons() {
-	  var button1 = document.createElement('div');
-	  button1.className = 'squarebook_button';
-	  button1.style.width = controlsWrapper.clientWidth / 10 * 2 - 2 + 'px';
-	  button1.style.height = controlsWrapper.clientHeight - 2 + 'px';
-	  controlsWrapper.appendChild(button1);
+	function createNavButtons() {
+	  var nextButton = document.createElement('div');
+	  nextButton.className = 'squarebook_navButton';
+	  controlsWrapper.appendChild(nextButton);
+	  elements.nextButton = nextButton;
 
-	  var button1Text = document.createTextNode('<');
-	  button1.appendChild(button1Text);
+	  var nextButtonText = document.createTextNode('>');
+	  nextButton.appendChild(nextButtonText);
 
-	  var button2 = document.createElement('div');
-	  button2.className = 'squarebook_button';
-	  button2.style.width = controlsWrapper.clientWidth / 10 * 2 - 2 + 'px';
-	  button2.style.height = controlsWrapper.clientHeight - 2 + 'px';
-	  controlsWrapper.appendChild(button2);
+	  var prevButton = document.createElement('div');
+	  prevButton.className = 'squarebook_navButton';
+	  controlsWrapper.appendChild(prevButton);
+	  elements.prevButton = prevButton;
 
-	  var button2Text = document.createTextNode('>');
-	  button2.appendChild(button2Text);
+	  var prevButtonText = document.createTextNode('<');
+	  prevButton.appendChild(prevButtonText);
+	}
+
+	function createInputs() {
+	  var nameInput = document.createElement("input");
+	  nameInput.className = 'squarebook_nameInput';
+	  nameInput.type = "text";
+	  nameInput.placeholder = 'Your name';
+	  nameInput.setAttribute('maxlength', 15);
+	  controlsWrapper.appendChild(nameInput);
+	  elements.nameInput = nameInput;
+
+	  var clearButton = document.createElement('div');
+	  clearButton.className = 'squarebook_navButton';
+	  controlsWrapper.appendChild(clearButton);
+	  elements.clearButton = clearButton;
+
+	  var clearButtonText = document.createTextNode('clear');
+	  clearButton.appendChild(clearButtonText);
+
+	  var saveButton = document.createElement('div');
+	  saveButton.className = 'squarebook_navButton';
+	  controlsWrapper.appendChild(saveButton);
+	  elements.saveButton = saveButton;
+
+	  var saveButtonText = document.createTextNode('save');
+	  saveButton.appendChild(saveButtonText);
+	}
+
+	function adjustUI() {
+
+	  if (adjusting) {
+	    return;
+	  }
+
+	  adjusting = true;
+
+	  setTimeout(function () {
+	    adjusting = false;
+	  }, 2000);
+
+	  var controlsHeight = wrapper.clientHeight / 10;
+	  var squareWidth = wrapper.clientWidth / 50 - 2;
+	  var squareHeight = (wrapper.clientHeight - controlsHeight) / 30 - 2;
+
+	  for (var i = 0; i < elements.squares.length; i++) {
+	    elements.squares[i].style.width = squareWidth + 'px';
+	    elements.squares[i].style.height = squareHeight + 'px';
+	  }
+
+	  elements.controlsWrapper.style.width = wrapper.clientWidth + 'px';
+	  elements.controlsWrapper.style.height = wrapper.clientHeight / 10 + 'px';
+
+	  for (var i = 0; i < elements.colors.length; i++) {
+	    elements.colors[i].style.width = controlsWrapper.clientWidth / 20 - 2 + 'px';
+	    elements.colors[i].style.height = controlsWrapper.clientHeight - 2 + 'px';
+	  }
+
+	  elements.nextButton.style.width = controlsWrapper.clientWidth / 20 * 3 - 2 + 'px';
+	  elements.nextButton.style.height = controlsWrapper.clientHeight + 'px';
+	  elements.nextButton.style.fontSize = controlsWrapper.clientHeight + 'px';
+
+	  elements.prevButton.style.width = controlsWrapper.clientWidth / 20 * 3 - 2 + 'px';
+	  elements.prevButton.style.height = controlsWrapper.clientHeight + 'px';
+	  elements.prevButton.style.fontSize = controlsWrapper.clientHeight + 'px';
+
+	  elements.nameInput.style.width = controlsWrapper.clientWidth / 20 * 4 - 2 + 'px';
+	  elements.nameInput.style.height = controlsWrapper.clientHeight - 6 + 'px';
+	  elements.nameInput.style.fontSize = controlsWrapper.clientHeight / 2 + 'px';
+	  elements.nameInput.style.fontSize = controlsWrapper.clientHeight / 3 + 'px';
+
+	  elements.clearButton.style.width = controlsWrapper.clientWidth / 20 * 2 - 2 + 'px';
+	  elements.clearButton.style.height = controlsWrapper.clientHeight / 2 + 'px';
+	  elements.clearButton.style.fontSize = controlsWrapper.clientHeight / 2 + 'px';
+	  elements.clearButton.style.marginTop = controlsWrapper.clientHeight / 5 + 'px';
+
+	  elements.saveButton.style.width = controlsWrapper.clientWidth / 20 * 2 - 2 + 'px';
+	  elements.saveButton.style.height = controlsWrapper.clientHeight / 2 + 'px';
+	  elements.saveButton.style.fontSize = controlsWrapper.clientHeight / 2 + 'px';
+	  elements.saveButton.style.marginTop = controlsWrapper.clientHeight / 5 + 'px';
+	}
+
+	function bindEvents() {
+	  window.addEventListener('resize', function () {
+	    setTimeout(adjustUI, 1000);
+	  });
 	}
 
 	exports.default = function (config) {
 	  _config = config;
-
+	  elements = config.state.elements;
 	  return {
-	    buildGrid: buildGrid
+	    build: build
 	  };
 	};
 
