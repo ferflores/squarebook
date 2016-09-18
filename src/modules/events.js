@@ -8,6 +8,8 @@ function bindDrawingEvents(config){
   elements.wrapper.addEventListener('mouseup', config.drawingActions.stopDraw);
   elements.wrapper.addEventListener('mouseleave', config.drawingActions.stopDraw);
   elements.wrapper.addEventListener('mousedown', config.drawingActions.beginDraw);
+  elements.signButton.addEventListener('click', config.drawingActions.prepareToDraw);
+  elements.cancelButton.addEventListener('click', config.drawingActions.cancelDraw);
 
   for (var i = 0; i < elements.squares.length; i++) {
     elements.squares[i].addEventListener('mousemove', config.drawingActions.draw);

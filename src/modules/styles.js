@@ -65,7 +65,7 @@ function buildCss(config) {
       border:none;
       background-color:black;
       color:white;
-      padding-left:3px;
+      padding-left:10px;
     }
   `;
 

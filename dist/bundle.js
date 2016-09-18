@@ -54,15 +54,15 @@
 
 	var _ui2 = _interopRequireDefault(_ui);
 
-	var _events = __webpack_require__(3);
+	var _events = __webpack_require__(8);
 
 	var _events2 = _interopRequireDefault(_events);
 
-	var _serverActions = __webpack_require__(5);
+	var _serverActions = __webpack_require__(9);
 
 	var _serverActions2 = _interopRequireDefault(_serverActions);
 
-	var _drawingActions = __webpack_require__(4);
+	var _drawingActions = __webpack_require__(34);
 
 	var _drawingActions2 = _interopRequireDefault(_drawingActions);
 
@@ -72,10 +72,13 @@
 	  state: {
 	    currentColor: '#FF0000',
 	    currentIndex: -1,
+	    currentName: '',
+	    currentPoints: [],
 	    drawingIndex: 0,
 	    drawingServerData: false,
 	    loading: false,
 	    drawing: false,
+	    drawMode: false,
 	    hasDrawData: false,
 	    topIndex: null,
 	    elements: {
@@ -87,6 +90,8 @@
 	      controlsWrapper: null,
 	      nextButton: null,
 	      prevButton: null,
+	      signButton: null,
+	      cancelButton: null,
 	      clearButton: null,
 	      saveButton: null,
 	      nameInput: null
@@ -135,7 +140,7 @@
 	});
 
 	function buildCss(config) {
-	  var cssText = '\n    .squarebook_wrapper {\n        width:100%;\n        height:100%;\n        background-color: ' + (config.backgroundColor || '#0e1122') + ';\n        -khtml-opacity: ' + (config.opacity || .8) + ';\n        -webkit-opacity: ' + (config.opacity || .8) + ';\n        opacity: ' + (config.backgroundColor || .8) + ';\n        position:relative;\n        font-family:Arial;\n        -moz-user-select: none;\n        -khtml-user-select: none;\n        user-select: none;\n        -webkit-user-select: none;\n    }\n\n    .squarebook_square {\n      background-color: ' + (config.squareColor || '#282754') + ';\n      float:left;\n      margin:1px;\n    }\n\n    .squarebook_square:hover {\n      background-color: ' + (config.squareColorHover || '#595881') + ';\n    }\n\n    .squarebook_controls {\n      background-color:black;\n      position:absolute;\n      bottom:0;\n    }\n\n    .squarebook_color {\n      float:right;\n      border: 1px dashed #555555;\n      cursor:pointer;\n    }\n\n    .squarebook_color:hover {\n      border: 1px solid #FFFFFF;\n    }\n\n    .squarebook_navButton {\n      float:right;\n      color:#777777;\n      text-align:center;\n      cursor:pointer;\n      -webkit-touch-callout: none;\n      -webkit-user-select: none;\n      -khtml-user-select: none;\n      -moz-user-select: none;\n      -ms-user-select: none;\n      user-select: none;\n      font-weight:none;\n    }\n\n    .squarebook_navButton:hover {\n      background-color:#121645;\n    }\n\n    .squarebook_nameInput {\n      border:none;\n      background-color:black;\n      color:white;\n      padding-left:3px;\n    }\n  ';
+	  var cssText = '\n    .squarebook_wrapper {\n        width:100%;\n        height:100%;\n        background-color: ' + (config.backgroundColor || '#0e1122') + ';\n        -khtml-opacity: ' + (config.opacity || .8) + ';\n        -webkit-opacity: ' + (config.opacity || .8) + ';\n        opacity: ' + (config.backgroundColor || .8) + ';\n        position:relative;\n        font-family:Arial;\n        -moz-user-select: none;\n        -khtml-user-select: none;\n        user-select: none;\n        -webkit-user-select: none;\n    }\n\n    .squarebook_square {\n      background-color: ' + (config.squareColor || '#282754') + ';\n      float:left;\n      margin:1px;\n    }\n\n    .squarebook_square:hover {\n      background-color: ' + (config.squareColorHover || '#595881') + ';\n    }\n\n    .squarebook_controls {\n      background-color:black;\n      position:absolute;\n      bottom:0;\n    }\n\n    .squarebook_color {\n      float:right;\n      border: 1px dashed #555555;\n      cursor:pointer;\n    }\n\n    .squarebook_color:hover {\n      border: 1px solid #FFFFFF;\n    }\n\n    .squarebook_navButton {\n      float:right;\n      color:#777777;\n      text-align:center;\n      cursor:pointer;\n      -webkit-touch-callout: none;\n      -webkit-user-select: none;\n      -khtml-user-select: none;\n      -moz-user-select: none;\n      -ms-user-select: none;\n      user-select: none;\n      font-weight:none;\n    }\n\n    .squarebook_navButton:hover {\n      background-color:#121645;\n    }\n\n    .squarebook_nameInput {\n      border:none;\n      background-color:black;\n      color:white;\n      padding-left:10px;\n    }\n  ';
 
 	  return cssText;
 	}
@@ -157,13 +162,20 @@
 
 /***/ },
 /* 2 */
-/***/ function(module, exports) {
+/***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
 
 	Object.defineProperty(exports, "__esModule", {
 	  value: true
 	});
+
+	var _keyStorage = __webpack_require__(3);
+
+	var _keyStorage2 = _interopRequireDefault(_keyStorage);
+
+	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
 	var _config = null;
 	var elements = null;
 	var wrapper = null;
@@ -222,6 +234,7 @@
 	    var color = document.createElement('div');
 	    color.className = 'squarebook_color';
 	    color.style.backgroundColor = colors[i].hex;
+	    color.style.display = 'none';
 	    controlsWrapper.appendChild(color);
 	    elements.colors.push(color);
 	  }
@@ -252,10 +265,32 @@
 	  nameInput.type = "text";
 	  nameInput.placeholder = 'Your name';
 	  nameInput.setAttribute('maxlength', 15);
+	  nameInput.setAttribute('readonly', 'readonly');
 	  controlsWrapper.appendChild(nameInput);
 	  elements.nameInput = nameInput;
 
+	  var signButton = document.createElement('div');
+	  signButton.className = 'squarebook_navButton';
+	  signButton.style.float = 'left';
+	  signButton.style.display = _keyStorage2.default.get('sign') ? 'none' : 'inline';
+	  controlsWrapper.appendChild(signButton);
+	  elements.signButton = signButton;
+
+	  var signButtonText = document.createTextNode('start drawing');
+	  signButton.appendChild(signButtonText);
+
+	  var cancelButton = document.createElement('div');
+	  cancelButton.className = 'squarebook_navButton';
+	  cancelButton.style.float = 'right';
+	  cancelButton.style.display = 'none';
+	  controlsWrapper.appendChild(cancelButton);
+	  elements.cancelButton = cancelButton;
+
+	  var cancelButtonText = document.createTextNode('cancel');
+	  cancelButton.appendChild(cancelButtonText);
+
 	  var clearButton = document.createElement('div');
+	  clearButton.style.display = 'none';
 	  clearButton.className = 'squarebook_navButton';
 	  controlsWrapper.appendChild(clearButton);
 	  elements.clearButton = clearButton;
@@ -264,6 +299,7 @@
 	  clearButton.appendChild(clearButtonText);
 
 	  var saveButton = document.createElement('div');
+	  saveButton.style.display = 'none';
 	  saveButton.className = 'squarebook_navButton';
 	  controlsWrapper.appendChild(saveButton);
 	  elements.saveButton = saveButton;
@@ -309,9 +345,18 @@
 	  elements.prevButton.style.height = controlsWrapper.clientHeight + 'px';
 	  elements.prevButton.style.fontSize = controlsWrapper.clientHeight + 'px';
 
-	  elements.nameInput.style.width = controlsWrapper.clientWidth / 20 * 4 - 2 + 'px';
+	  elements.signButton.style.width = controlsWrapper.clientWidth / 20 * 4 - 2 + 'px';
+	  elements.signButton.style.height = controlsWrapper.clientHeight / 2 + 'px';
+	  elements.signButton.style.fontSize = controlsWrapper.clientHeight / 2 + 'px';
+	  elements.signButton.style.marginTop = controlsWrapper.clientHeight / 5 + 'px';
+
+	  elements.cancelButton.style.width = controlsWrapper.clientWidth / 20 * 4 - 2 + 'px';
+	  elements.cancelButton.style.height = controlsWrapper.clientHeight / 2 + 'px';
+	  elements.cancelButton.style.fontSize = controlsWrapper.clientHeight / 2 + 'px';
+	  elements.cancelButton.style.marginTop = controlsWrapper.clientHeight / 5 + 'px';
+
+	  elements.nameInput.style.width = controlsWrapper.clientWidth / 20 * 5 - 2 + 'px';
 	  elements.nameInput.style.height = controlsWrapper.clientHeight - 6 + 'px';
-	  elements.nameInput.style.fontSize = controlsWrapper.clientHeight / 2 + 'px';
 	  elements.nameInput.style.fontSize = controlsWrapper.clientHeight / 3 + 'px';
 
 	  elements.clearButton.style.width = controlsWrapper.clientWidth / 20 * 2 - 2 + 'px';
@@ -341,6 +386,728 @@
 
 /***/ },
 /* 3 */
+/***/ function(module, exports, __webpack_require__) {
+
+	// Generated by CoffeeScript 1.8.0
+	(function() {
+	  var CookieStorage, LocalStorage, cookie, isLocalStorageAvailable;
+
+	  cookie = __webpack_require__(4);
+
+	  isLocalStorageAvailable = function() {
+	    var data, error, key;
+	    if (!window.localStorage) {
+	      return false;
+	    }
+	    try {
+	      key = 'test_key';
+	      data = Date.now() + Math.round(Math.random() * 1000) + '';
+	      window.localStorage.setItem(key, data);
+	      if (window.localStorage.getItem(key) !== data) {
+	        return false;
+	      }
+	      window.localStorage.removeItem(key);
+	    } catch (_error) {
+	      error = _error;
+	      return false;
+	    }
+	    return true;
+	  };
+
+	  CookieStorage = (function() {
+	    function CookieStorage() {}
+
+	    CookieStorage.prototype.set = function(key, value) {
+	      return cookie(key, value, {
+	        path: '/'
+	      });
+	    };
+
+	    CookieStorage.prototype.get = function(key) {
+	      return cookie(key);
+	    };
+
+	    CookieStorage.prototype.remove = function(key) {
+	      return cookie(key, null);
+	    };
+
+	    return CookieStorage;
+
+	  })();
+
+	  LocalStorage = (function() {
+	    function LocalStorage() {}
+
+	    LocalStorage.prototype.set = function(key, value) {
+	      return window.localStorage.setItem(key, value);
+	    };
+
+	    LocalStorage.prototype.get = function(key) {
+	      return window.localStorage.getItem(key);
+	    };
+
+	    LocalStorage.prototype.remove = function(key) {
+	      return window.localStorage.removeItem(key);
+	    };
+
+	    return LocalStorage;
+
+	  })();
+
+	  this.storageClass = isLocalStorageAvailable() ? LocalStorage : CookieStorage;
+
+	  module.exports = new this.storageClass();
+
+	}).call(this);
+
+
+/***/ },
+/* 4 */
+/***/ function(module, exports, __webpack_require__) {
+
+	
+	/**
+	 * Module dependencies.
+	 */
+
+	var debug = __webpack_require__(5)('cookie');
+
+	/**
+	 * Set or get cookie `name` with `value` and `options` object.
+	 *
+	 * @param {String} name
+	 * @param {String} value
+	 * @param {Object} options
+	 * @return {Mixed}
+	 * @api public
+	 */
+
+	module.exports = function(name, value, options){
+	  switch (arguments.length) {
+	    case 3:
+	    case 2:
+	      return set(name, value, options);
+	    case 1:
+	      return get(name);
+	    default:
+	      return all();
+	  }
+	};
+
+	/**
+	 * Set cookie `name` to `value`.
+	 *
+	 * @param {String} name
+	 * @param {String} value
+	 * @param {Object} options
+	 * @api private
+	 */
+
+	function set(name, value, options) {
+	  options = options || {};
+	  var str = encode(name) + '=' + encode(value);
+
+	  if (null == value) options.maxage = -1;
+
+	  if (options.maxage) {
+	    options.expires = new Date(+new Date + options.maxage);
+	  }
+
+	  if (options.path) str += '; path=' + options.path;
+	  if (options.domain) str += '; domain=' + options.domain;
+	  if (options.expires) str += '; expires=' + options.expires.toUTCString();
+	  if (options.secure) str += '; secure';
+
+	  document.cookie = str;
+	}
+
+	/**
+	 * Return all cookies.
+	 *
+	 * @return {Object}
+	 * @api private
+	 */
+
+	function all() {
+	  var str;
+	  try {
+	    str = document.cookie;
+	  } catch (err) {
+	    if (typeof console !== 'undefined' && typeof console.error === 'function') {
+	      console.error(err.stack || err);
+	    }
+	    return {};
+	  }
+	  return parse(str);
+	}
+
+	/**
+	 * Get cookie `name`.
+	 *
+	 * @param {String} name
+	 * @return {String}
+	 * @api private
+	 */
+
+	function get(name) {
+	  return all()[name];
+	}
+
+	/**
+	 * Parse cookie `str`.
+	 *
+	 * @param {String} str
+	 * @return {Object}
+	 * @api private
+	 */
+
+	function parse(str) {
+	  var obj = {};
+	  var pairs = str.split(/ *; */);
+	  var pair;
+	  if ('' == pairs[0]) return obj;
+	  for (var i = 0; i < pairs.length; ++i) {
+	    pair = pairs[i].split('=');
+	    obj[decode(pair[0])] = decode(pair[1]);
+	  }
+	  return obj;
+	}
+
+	/**
+	 * Encode.
+	 */
+
+	function encode(value){
+	  try {
+	    return encodeURIComponent(value);
+	  } catch (e) {
+	    debug('error `encode(%o)` - %o', value, e)
+	  }
+	}
+
+	/**
+	 * Decode.
+	 */
+
+	function decode(value) {
+	  try {
+	    return decodeURIComponent(value);
+	  } catch (e) {
+	    debug('error `decode(%o)` - %o', value, e)
+	  }
+	}
+
+
+/***/ },
+/* 5 */
+/***/ function(module, exports, __webpack_require__) {
+
+	
+	/**
+	 * This is the web browser implementation of `debug()`.
+	 *
+	 * Expose `debug()` as the module.
+	 */
+
+	exports = module.exports = __webpack_require__(6);
+	exports.log = log;
+	exports.formatArgs = formatArgs;
+	exports.save = save;
+	exports.load = load;
+	exports.useColors = useColors;
+	exports.storage = 'undefined' != typeof chrome
+	               && 'undefined' != typeof chrome.storage
+	                  ? chrome.storage.local
+	                  : localstorage();
+
+	/**
+	 * Colors.
+	 */
+
+	exports.colors = [
+	  'lightseagreen',
+	  'forestgreen',
+	  'goldenrod',
+	  'dodgerblue',
+	  'darkorchid',
+	  'crimson'
+	];
+
+	/**
+	 * Currently only WebKit-based Web Inspectors, Firefox >= v31,
+	 * and the Firebug extension (any Firefox version) are known
+	 * to support "%c" CSS customizations.
+	 *
+	 * TODO: add a `localStorage` variable to explicitly enable/disable colors
+	 */
+
+	function useColors() {
+	  // is webkit? http://stackoverflow.com/a/16459606/376773
+	  return ('WebkitAppearance' in document.documentElement.style) ||
+	    // is firebug? http://stackoverflow.com/a/398120/376773
+	    (window.console && (console.firebug || (console.exception && console.table))) ||
+	    // is firefox >= v31?
+	    // https://developer.mozilla.org/en-US/docs/Tools/Web_Console#Styling_messages
+	    (navigator.userAgent.toLowerCase().match(/firefox\/(\d+)/) && parseInt(RegExp.$1, 10) >= 31);
+	}
+
+	/**
+	 * Map %j to `JSON.stringify()`, since no Web Inspectors do that by default.
+	 */
+
+	exports.formatters.j = function(v) {
+	  return JSON.stringify(v);
+	};
+
+
+	/**
+	 * Colorize log arguments if enabled.
+	 *
+	 * @api public
+	 */
+
+	function formatArgs() {
+	  var args = arguments;
+	  var useColors = this.useColors;
+
+	  args[0] = (useColors ? '%c' : '')
+	    + this.namespace
+	    + (useColors ? ' %c' : ' ')
+	    + args[0]
+	    + (useColors ? '%c ' : ' ')
+	    + '+' + exports.humanize(this.diff);
+
+	  if (!useColors) return args;
+
+	  var c = 'color: ' + this.color;
+	  args = [args[0], c, 'color: inherit'].concat(Array.prototype.slice.call(args, 1));
+
+	  // the final "%c" is somewhat tricky, because there could be other
+	  // arguments passed either before or after the %c, so we need to
+	  // figure out the correct index to insert the CSS into
+	  var index = 0;
+	  var lastC = 0;
+	  args[0].replace(/%[a-z%]/g, function(match) {
+	    if ('%%' === match) return;
+	    index++;
+	    if ('%c' === match) {
+	      // we only are interested in the *last* %c
+	      // (the user may have provided their own)
+	      lastC = index;
+	    }
+	  });
+
+	  args.splice(lastC, 0, c);
+	  return args;
+	}
+
+	/**
+	 * Invokes `console.log()` when available.
+	 * No-op when `console.log` is not a "function".
+	 *
+	 * @api public
+	 */
+
+	function log() {
+	  // this hackery is required for IE8/9, where
+	  // the `console.log` function doesn't have 'apply'
+	  return 'object' === typeof console
+	    && console.log
+	    && Function.prototype.apply.call(console.log, console, arguments);
+	}
+
+	/**
+	 * Save `namespaces`.
+	 *
+	 * @param {String} namespaces
+	 * @api private
+	 */
+
+	function save(namespaces) {
+	  try {
+	    if (null == namespaces) {
+	      exports.storage.removeItem('debug');
+	    } else {
+	      exports.storage.debug = namespaces;
+	    }
+	  } catch(e) {}
+	}
+
+	/**
+	 * Load `namespaces`.
+	 *
+	 * @return {String} returns the previously persisted debug modes
+	 * @api private
+	 */
+
+	function load() {
+	  var r;
+	  try {
+	    r = exports.storage.debug;
+	  } catch(e) {}
+	  return r;
+	}
+
+	/**
+	 * Enable namespaces listed in `localStorage.debug` initially.
+	 */
+
+	exports.enable(load());
+
+	/**
+	 * Localstorage attempts to return the localstorage.
+	 *
+	 * This is necessary because safari throws
+	 * when a user disables cookies/localstorage
+	 * and you attempt to access it.
+	 *
+	 * @return {LocalStorage}
+	 * @api private
+	 */
+
+	function localstorage(){
+	  try {
+	    return window.localStorage;
+	  } catch (e) {}
+	}
+
+
+/***/ },
+/* 6 */
+/***/ function(module, exports, __webpack_require__) {
+
+	
+	/**
+	 * This is the common logic for both the Node.js and web browser
+	 * implementations of `debug()`.
+	 *
+	 * Expose `debug()` as the module.
+	 */
+
+	exports = module.exports = debug;
+	exports.coerce = coerce;
+	exports.disable = disable;
+	exports.enable = enable;
+	exports.enabled = enabled;
+	exports.humanize = __webpack_require__(7);
+
+	/**
+	 * The currently active debug mode names, and names to skip.
+	 */
+
+	exports.names = [];
+	exports.skips = [];
+
+	/**
+	 * Map of special "%n" handling functions, for the debug "format" argument.
+	 *
+	 * Valid key names are a single, lowercased letter, i.e. "n".
+	 */
+
+	exports.formatters = {};
+
+	/**
+	 * Previously assigned color.
+	 */
+
+	var prevColor = 0;
+
+	/**
+	 * Previous log timestamp.
+	 */
+
+	var prevTime;
+
+	/**
+	 * Select a color.
+	 *
+	 * @return {Number}
+	 * @api private
+	 */
+
+	function selectColor() {
+	  return exports.colors[prevColor++ % exports.colors.length];
+	}
+
+	/**
+	 * Create a debugger with the given `namespace`.
+	 *
+	 * @param {String} namespace
+	 * @return {Function}
+	 * @api public
+	 */
+
+	function debug(namespace) {
+
+	  // define the `disabled` version
+	  function disabled() {
+	  }
+	  disabled.enabled = false;
+
+	  // define the `enabled` version
+	  function enabled() {
+
+	    var self = enabled;
+
+	    // set `diff` timestamp
+	    var curr = +new Date();
+	    var ms = curr - (prevTime || curr);
+	    self.diff = ms;
+	    self.prev = prevTime;
+	    self.curr = curr;
+	    prevTime = curr;
+
+	    // add the `color` if not set
+	    if (null == self.useColors) self.useColors = exports.useColors();
+	    if (null == self.color && self.useColors) self.color = selectColor();
+
+	    var args = Array.prototype.slice.call(arguments);
+
+	    args[0] = exports.coerce(args[0]);
+
+	    if ('string' !== typeof args[0]) {
+	      // anything else let's inspect with %o
+	      args = ['%o'].concat(args);
+	    }
+
+	    // apply any `formatters` transformations
+	    var index = 0;
+	    args[0] = args[0].replace(/%([a-z%])/g, function(match, format) {
+	      // if we encounter an escaped % then don't increase the array index
+	      if (match === '%%') return match;
+	      index++;
+	      var formatter = exports.formatters[format];
+	      if ('function' === typeof formatter) {
+	        var val = args[index];
+	        match = formatter.call(self, val);
+
+	        // now we need to remove `args[index]` since it's inlined in the `format`
+	        args.splice(index, 1);
+	        index--;
+	      }
+	      return match;
+	    });
+
+	    if ('function' === typeof exports.formatArgs) {
+	      args = exports.formatArgs.apply(self, args);
+	    }
+	    var logFn = enabled.log || exports.log || console.log.bind(console);
+	    logFn.apply(self, args);
+	  }
+	  enabled.enabled = true;
+
+	  var fn = exports.enabled(namespace) ? enabled : disabled;
+
+	  fn.namespace = namespace;
+
+	  return fn;
+	}
+
+	/**
+	 * Enables a debug mode by namespaces. This can include modes
+	 * separated by a colon and wildcards.
+	 *
+	 * @param {String} namespaces
+	 * @api public
+	 */
+
+	function enable(namespaces) {
+	  exports.save(namespaces);
+
+	  var split = (namespaces || '').split(/[\s,]+/);
+	  var len = split.length;
+
+	  for (var i = 0; i < len; i++) {
+	    if (!split[i]) continue; // ignore empty strings
+	    namespaces = split[i].replace(/\*/g, '.*?');
+	    if (namespaces[0] === '-') {
+	      exports.skips.push(new RegExp('^' + namespaces.substr(1) + '$'));
+	    } else {
+	      exports.names.push(new RegExp('^' + namespaces + '$'));
+	    }
+	  }
+	}
+
+	/**
+	 * Disable debug output.
+	 *
+	 * @api public
+	 */
+
+	function disable() {
+	  exports.enable('');
+	}
+
+	/**
+	 * Returns true if the given mode name is enabled, false otherwise.
+	 *
+	 * @param {String} name
+	 * @return {Boolean}
+	 * @api public
+	 */
+
+	function enabled(name) {
+	  var i, len;
+	  for (i = 0, len = exports.skips.length; i < len; i++) {
+	    if (exports.skips[i].test(name)) {
+	      return false;
+	    }
+	  }
+	  for (i = 0, len = exports.names.length; i < len; i++) {
+	    if (exports.names[i].test(name)) {
+	      return true;
+	    }
+	  }
+	  return false;
+	}
+
+	/**
+	 * Coerce `val`.
+	 *
+	 * @param {Mixed} val
+	 * @return {Mixed}
+	 * @api private
+	 */
+
+	function coerce(val) {
+	  if (val instanceof Error) return val.stack || val.message;
+	  return val;
+	}
+
+
+/***/ },
+/* 7 */
+/***/ function(module, exports) {
+
+	/**
+	 * Helpers.
+	 */
+
+	var s = 1000;
+	var m = s * 60;
+	var h = m * 60;
+	var d = h * 24;
+	var y = d * 365.25;
+
+	/**
+	 * Parse or format the given `val`.
+	 *
+	 * Options:
+	 *
+	 *  - `long` verbose formatting [false]
+	 *
+	 * @param {String|Number} val
+	 * @param {Object} options
+	 * @return {String|Number}
+	 * @api public
+	 */
+
+	module.exports = function(val, options){
+	  options = options || {};
+	  if ('string' == typeof val) return parse(val);
+	  return options.long
+	    ? long(val)
+	    : short(val);
+	};
+
+	/**
+	 * Parse the given `str` and return milliseconds.
+	 *
+	 * @param {String} str
+	 * @return {Number}
+	 * @api private
+	 */
+
+	function parse(str) {
+	  str = '' + str;
+	  if (str.length > 10000) return;
+	  var match = /^((?:\d+)?\.?\d+) *(milliseconds?|msecs?|ms|seconds?|secs?|s|minutes?|mins?|m|hours?|hrs?|h|days?|d|years?|yrs?|y)?$/i.exec(str);
+	  if (!match) return;
+	  var n = parseFloat(match[1]);
+	  var type = (match[2] || 'ms').toLowerCase();
+	  switch (type) {
+	    case 'years':
+	    case 'year':
+	    case 'yrs':
+	    case 'yr':
+	    case 'y':
+	      return n * y;
+	    case 'days':
+	    case 'day':
+	    case 'd':
+	      return n * d;
+	    case 'hours':
+	    case 'hour':
+	    case 'hrs':
+	    case 'hr':
+	    case 'h':
+	      return n * h;
+	    case 'minutes':
+	    case 'minute':
+	    case 'mins':
+	    case 'min':
+	    case 'm':
+	      return n * m;
+	    case 'seconds':
+	    case 'second':
+	    case 'secs':
+	    case 'sec':
+	    case 's':
+	      return n * s;
+	    case 'milliseconds':
+	    case 'millisecond':
+	    case 'msecs':
+	    case 'msec':
+	    case 'ms':
+	      return n;
+	  }
+	}
+
+	/**
+	 * Short format for `ms`.
+	 *
+	 * @param {Number} ms
+	 * @return {String}
+	 * @api private
+	 */
+
+	function short(ms) {
+	  if (ms >= d) return Math.round(ms / d) + 'd';
+	  if (ms >= h) return Math.round(ms / h) + 'h';
+	  if (ms >= m) return Math.round(ms / m) + 'm';
+	  if (ms >= s) return Math.round(ms / s) + 's';
+	  return ms + 'ms';
+	}
+
+	/**
+	 * Long format for `ms`.
+	 *
+	 * @param {Number} ms
+	 * @return {String}
+	 * @api private
+	 */
+
+	function long(ms) {
+	  return plural(ms, d, 'day')
+	    || plural(ms, h, 'hour')
+	    || plural(ms, m, 'minute')
+	    || plural(ms, s, 'second')
+	    || ms + ' ms';
+	}
+
+	/**
+	 * Pluralization helper.
+	 */
+
+	function plural(ms, n, name) {
+	  if (ms < n) return;
+	  if (ms < n * 1.5) return Math.floor(ms / n) + ' ' + name;
+	  return Math.ceil(ms / n) + ' ' + name + 's';
+	}
+
+
+/***/ },
+/* 8 */
 /***/ function(module, exports) {
 
 	'use strict';
@@ -358,6 +1125,8 @@
 	  elements.wrapper.addEventListener('mouseup', config.drawingActions.stopDraw);
 	  elements.wrapper.addEventListener('mouseleave', config.drawingActions.stopDraw);
 	  elements.wrapper.addEventListener('mousedown', config.drawingActions.beginDraw);
+	  elements.signButton.addEventListener('click', config.drawingActions.prepareToDraw);
+	  elements.cancelButton.addEventListener('click', config.drawingActions.cancelDraw);
 
 	  for (var i = 0; i < elements.squares.length; i++) {
 	    elements.squares[i].addEventListener('mousemove', config.drawingActions.draw);
@@ -383,79 +1152,7 @@
 	};
 
 /***/ },
-/* 4 */
-/***/ function(module, exports) {
-
-	'use strict';
-
-	Object.defineProperty(exports, "__esModule", {
-	  value: true
-	});
-	var _config = null;
-
-	function beginDraw(event) {
-	  _config.state.drawing = true;
-	}
-
-	function stopDraw(event) {
-	  _config.state.drawing = false;
-	}
-
-	function draw(event) {
-	  event.preventDefault();
-	  if (_config.state.drawing) {
-	    _config.state.hasDrawData = true;
-	    event.target.style.backgroundColor = _config.state.currentColor;
-	    event.target.setAttribute('data-draw', _config.state.currentColor);
-	  }
-	}
-
-	function setColor(event) {
-	  _config.state.currentColor = event.target.style.backgroundColor;
-	}
-
-	function clear() {
-	  for (var i = 0; i < _config.state.elements.squares.length; i++) {
-	    _config.state.elements.squares[i].style.backgroundColor = _config.squareColor;
-	    _config.state.elements.squares[i].removeAttribute('data-draw');
-	  }
-	  _config.state.hasDrawData = false;
-	}
-
-	function drawData(data, currentIndex) {
-	  _config.state.elements.nameInput.value = data.name;
-	  drawPoints(data.points, currentIndex);
-	}
-
-	function drawPoints(points, currentIndex) {
-	  if (points.length < 1 || currentIndex != _config.state.drawingIndex) {
-	    _config.state.drawingServerData = false;
-	    return;
-	  }
-	  _config.state.drawingServerData = true;
-	  var rand = Math.floor(Math.random() * points.length);
-	  _config.state.elements.squares[points[rand].index].style.backgroundColor = points[rand].color;
-
-	  setTimeout(function () {
-	    points.splice(rand, 1);
-	    drawPoints(points, currentIndex);
-	  }, 100);
-	}
-
-	exports.default = function (config) {
-	  _config = config;
-	  return {
-	    beginDraw: beginDraw,
-	    stopDraw: stopDraw,
-	    draw: draw,
-	    setColor: setColor,
-	    clear: clear,
-	    drawData: drawData
-	  };
-	};
-
-/***/ },
-/* 5 */
+/* 9 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -464,13 +1161,17 @@
 	  value: true
 	});
 
-	var _errorMessage = __webpack_require__(6);
+	var _errorMessage = __webpack_require__(10);
 
 	var _errorMessage2 = _interopRequireDefault(_errorMessage);
 
-	var _axios = __webpack_require__(7);
+	var _axios = __webpack_require__(11);
 
 	var _axios2 = _interopRequireDefault(_axios);
+
+	var _keyStorage = __webpack_require__(3);
+
+	var _keyStorage2 = _interopRequireDefault(_keyStorage);
 
 	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
@@ -512,9 +1213,13 @@
 
 	function handlePostResponse() {
 	  _errorMessage2.default.displayMessage(_config.state.elements.wrapper, 'Your draw has been saved, thanks!');
+	  _config.drawingActions.drawDone();
+	  getRequest(0, 1);
 	}
 
 	function handleGetResponse(data) {
+	  _config.state.currentPoints = data.points.slice(0);
+	  _config.state.currentName = data.name;
 	  _config.drawingActions.drawData(data, _config.state.drawingIndex);
 	}
 
@@ -536,12 +1241,14 @@
 
 	function getRequest(index, increment) {
 	  _config.drawingActions.clear();
+	  _config.state.elements.nameInput.value = 'loading...';
 	  _config.state.loading = true;
 	  _axios2.default.get(_config.getDataUrl + '/?index=' + index).then(function (response) {
 	    if (!response.data.lastItem) {
 	      _config.state.drawingIndex = _config.state.currentIndex;
 	      handleGetResponse(response.data);
 	      _config.state.currentIndex += increment;
+	      _keyStorage2.default.set('signed', 'true');
 	    } else {
 	      _config.state.topIndex = index;
 	      _errorMessage2.default.displayMessage(_config.state.elements.wrapper, 'There are no more items!');
@@ -564,7 +1271,7 @@
 	};
 
 /***/ },
-/* 6 */
+/* 10 */
 /***/ function(module, exports) {
 
 	'use strict';
@@ -600,20 +1307,20 @@
 	};
 
 /***/ },
-/* 7 */
+/* 11 */
 /***/ function(module, exports, __webpack_require__) {
 
-	module.exports = __webpack_require__(8);
+	module.exports = __webpack_require__(12);
 
 /***/ },
-/* 8 */
+/* 12 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
 
-	var utils = __webpack_require__(9);
-	var bind = __webpack_require__(10);
-	var Axios = __webpack_require__(11);
+	var utils = __webpack_require__(13);
+	var bind = __webpack_require__(14);
+	var Axios = __webpack_require__(15);
 
 	/**
 	 * Create an instance of Axios
@@ -649,7 +1356,7 @@
 	axios.all = function all(promises) {
 	  return Promise.all(promises);
 	};
-	axios.spread = __webpack_require__(29);
+	axios.spread = __webpack_require__(33);
 
 	module.exports = axios;
 
@@ -658,12 +1365,12 @@
 
 
 /***/ },
-/* 9 */
+/* 13 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
 
-	var bind = __webpack_require__(10);
+	var bind = __webpack_require__(14);
 
 	/*global toString:true*/
 
@@ -963,7 +1670,7 @@
 
 
 /***/ },
-/* 10 */
+/* 14 */
 /***/ function(module, exports) {
 
 	'use strict';
@@ -980,17 +1687,17 @@
 
 
 /***/ },
-/* 11 */
+/* 15 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
 
-	var defaults = __webpack_require__(12);
-	var utils = __webpack_require__(9);
-	var InterceptorManager = __webpack_require__(14);
-	var dispatchRequest = __webpack_require__(15);
-	var isAbsoluteURL = __webpack_require__(27);
-	var combineURLs = __webpack_require__(28);
+	var defaults = __webpack_require__(16);
+	var utils = __webpack_require__(13);
+	var InterceptorManager = __webpack_require__(18);
+	var dispatchRequest = __webpack_require__(19);
+	var isAbsoluteURL = __webpack_require__(31);
+	var combineURLs = __webpack_require__(32);
 
 	/**
 	 * Create a new instance of Axios
@@ -1071,13 +1778,13 @@
 
 
 /***/ },
-/* 12 */
+/* 16 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
 
-	var utils = __webpack_require__(9);
-	var normalizeHeaderName = __webpack_require__(13);
+	var utils = __webpack_require__(13);
+	var normalizeHeaderName = __webpack_require__(17);
 
 	var PROTECTION_PREFIX = /^\)\]\}',?\n/;
 	var DEFAULT_CONTENT_TYPE = {
@@ -1149,12 +1856,12 @@
 
 
 /***/ },
-/* 13 */
+/* 17 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
 
-	var utils = __webpack_require__(9);
+	var utils = __webpack_require__(13);
 
 	module.exports = function normalizeHeaderName(headers, normalizedName) {
 	  utils.forEach(headers, function processHeader(value, name) {
@@ -1167,12 +1874,12 @@
 
 
 /***/ },
-/* 14 */
+/* 18 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
 
-	var utils = __webpack_require__(9);
+	var utils = __webpack_require__(13);
 
 	function InterceptorManager() {
 	  this.handlers = [];
@@ -1225,13 +1932,13 @@
 
 
 /***/ },
-/* 15 */
+/* 19 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/* WEBPACK VAR INJECTION */(function(process) {'use strict';
 
-	var utils = __webpack_require__(9);
-	var transformData = __webpack_require__(17);
+	var utils = __webpack_require__(13);
+	var transformData = __webpack_require__(21);
 
 	/**
 	 * Dispatch a request to the server using whichever adapter
@@ -1272,10 +1979,10 @@
 	    adapter = config.adapter;
 	  } else if (typeof XMLHttpRequest !== 'undefined') {
 	    // For browsers use XHR adapter
-	    adapter = __webpack_require__(18);
+	    adapter = __webpack_require__(22);
 	  } else if (typeof process !== 'undefined') {
 	    // For node use HTTP adapter
-	    adapter = __webpack_require__(18);
+	    adapter = __webpack_require__(22);
 	  }
 
 	  return Promise.resolve(config)
@@ -1304,10 +2011,10 @@
 	    });
 	};
 
-	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(16)))
+	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(20)))
 
 /***/ },
-/* 16 */
+/* 20 */
 /***/ function(module, exports) {
 
 	// shim for using process in browser
@@ -1493,12 +2200,12 @@
 
 
 /***/ },
-/* 17 */
+/* 21 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
 
-	var utils = __webpack_require__(9);
+	var utils = __webpack_require__(13);
 
 	/**
 	 * Transform the data for a request or a response
@@ -1519,18 +2226,18 @@
 
 
 /***/ },
-/* 18 */
+/* 22 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/* WEBPACK VAR INJECTION */(function(process) {'use strict';
 
-	var utils = __webpack_require__(9);
-	var settle = __webpack_require__(19);
-	var buildURL = __webpack_require__(22);
-	var parseHeaders = __webpack_require__(23);
-	var isURLSameOrigin = __webpack_require__(24);
-	var createError = __webpack_require__(20);
-	var btoa = (typeof window !== 'undefined' && window.btoa) || __webpack_require__(25);
+	var utils = __webpack_require__(13);
+	var settle = __webpack_require__(23);
+	var buildURL = __webpack_require__(26);
+	var parseHeaders = __webpack_require__(27);
+	var isURLSameOrigin = __webpack_require__(28);
+	var createError = __webpack_require__(24);
+	var btoa = (typeof window !== 'undefined' && window.btoa) || __webpack_require__(29);
 
 	module.exports = function xhrAdapter(config) {
 	  return new Promise(function dispatchXhrRequest(resolve, reject) {
@@ -1624,7 +2331,7 @@
 	    // This is only done if running in a standard browser environment.
 	    // Specifically not if we're in a web worker, or react-native.
 	    if (utils.isStandardBrowserEnv()) {
-	      var cookies = __webpack_require__(26);
+	      var cookies = __webpack_require__(30);
 
 	      // Add xsrf header
 	      var xsrfValue = (config.withCredentials || isURLSameOrigin(config.url)) && config.xsrfCookieName ?
@@ -1685,15 +2392,15 @@
 	  });
 	};
 
-	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(16)))
+	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(20)))
 
 /***/ },
-/* 19 */
+/* 23 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
 
-	var createError = __webpack_require__(20);
+	var createError = __webpack_require__(24);
 
 	/**
 	 * Resolve or reject a Promise based on response status.
@@ -1719,12 +2426,12 @@
 
 
 /***/ },
-/* 20 */
+/* 24 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
 
-	var enhanceError = __webpack_require__(21);
+	var enhanceError = __webpack_require__(25);
 
 	/**
 	 * Create an Error with the specified message, config, error code, and response.
@@ -1742,7 +2449,7 @@
 
 
 /***/ },
-/* 21 */
+/* 25 */
 /***/ function(module, exports) {
 
 	'use strict';
@@ -1767,12 +2474,12 @@
 
 
 /***/ },
-/* 22 */
+/* 26 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
 
-	var utils = __webpack_require__(9);
+	var utils = __webpack_require__(13);
 
 	function encode(val) {
 	  return encodeURIComponent(val).
@@ -1841,12 +2548,12 @@
 
 
 /***/ },
-/* 23 */
+/* 27 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
 
-	var utils = __webpack_require__(9);
+	var utils = __webpack_require__(13);
 
 	/**
 	 * Parse headers into an object
@@ -1884,12 +2591,12 @@
 
 
 /***/ },
-/* 24 */
+/* 28 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
 
-	var utils = __webpack_require__(9);
+	var utils = __webpack_require__(13);
 
 	module.exports = (
 	  utils.isStandardBrowserEnv() ?
@@ -1958,7 +2665,7 @@
 
 
 /***/ },
-/* 25 */
+/* 29 */
 /***/ function(module, exports) {
 
 	'use strict';
@@ -2000,12 +2707,12 @@
 
 
 /***/ },
-/* 26 */
+/* 30 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
 
-	var utils = __webpack_require__(9);
+	var utils = __webpack_require__(13);
 
 	module.exports = (
 	  utils.isStandardBrowserEnv() ?
@@ -2059,7 +2766,7 @@
 
 
 /***/ },
-/* 27 */
+/* 31 */
 /***/ function(module, exports) {
 
 	'use strict';
@@ -2079,7 +2786,7 @@
 
 
 /***/ },
-/* 28 */
+/* 32 */
 /***/ function(module, exports) {
 
 	'use strict';
@@ -2097,7 +2804,7 @@
 
 
 /***/ },
-/* 29 */
+/* 33 */
 /***/ function(module, exports) {
 
 	'use strict';
@@ -2128,6 +2835,136 @@
 	  };
 	};
 
+
+/***/ },
+/* 34 */
+/***/ function(module, exports) {
+
+	'use strict';
+
+	Object.defineProperty(exports, "__esModule", {
+	  value: true
+	});
+	var _config = null;
+
+	function beginDraw(event) {
+	  _config.state.drawing = true;
+	}
+
+	function stopDraw(event) {
+	  _config.state.drawing = false;
+	}
+
+	function prepareToDraw() {
+	  _config.state.drawMode = true;
+	  clear();
+	  _config.state.elements.clearButton.style.display = 'inline';
+	  _config.state.elements.saveButton.style.display = 'inline';
+	  _config.state.elements.signButton.style.display = 'none';
+	  _config.state.elements.nextButton.style.display = 'none';
+	  _config.state.elements.prevButton.style.display = 'none';
+	  _config.state.elements.cancelButton.style.display = 'inline';
+	  _config.state.elements.nameInput.removeAttribute('readonly');
+	  _config.state.elements.nameInput.value = '';
+	  _config.state.currentIndex = 0;
+	  _config.state.drawingIndex = 0;
+	  var colors = _config.state.elements.colors;
+	  for (var i = 0; i < colors.length; i++) {
+	    colors[i].style.display = 'inline';
+	  }
+	}
+
+	function cancelDraw() {
+	  _config.state.drawMode = false;
+	  clear();
+	  _config.state.elements.clearButton.style.display = 'none';
+	  _config.state.elements.saveButton.style.display = 'none';
+	  _config.state.elements.signButton.style.display = 'inline';
+	  _config.state.elements.nextButton.style.display = 'inline';
+	  _config.state.elements.prevButton.style.display = 'inline';
+	  _config.state.elements.cancelButton.style.display = 'none';
+	  _config.state.elements.nameInput.value = 'draw by: ' + _config.state.currentName;
+	  _config.state.elements.nameInput.setAttribute('readonly', 'readonly');
+	  _config.state.currentIndex = 0;
+	  _config.state.drawingIndex = 0;
+	  var colors = _config.state.elements.colors;
+	  for (var i = 0; i < colors.length; i++) {
+	    colors[i].style.display = 'none';
+	  }
+
+	  drawPoints(_config.state.currentPoints, _config.state.currentIndex);
+	}
+
+	function drawDone() {
+	  _config.state.drawMode = false;
+	  _config.state.elements.clearButton.style.display = 'none';
+	  _config.state.elements.saveButton.style.display = 'none';
+	  _config.state.elements.nextButton.style.display = 'inline';
+	  _config.state.elements.prevButton.style.display = 'inline';
+	  _config.state.elements.cancelButton.style.display = 'none';
+	  _config.state.drawingIndex = 0;
+	  _config.state.currentIndex = -1;
+	  var colors = _config.state.elements.colors;
+	  for (var i = 0; i < colors.length; i++) {
+	    colors[i].style.display = 'none';
+	  }
+	}
+
+	function draw(event) {
+	  event.preventDefault();
+	  if (_config.state.drawing && _config.state.drawMode) {
+	    _config.state.hasDrawData = true;
+	    event.target.style.backgroundColor = _config.state.currentColor;
+	    event.target.setAttribute('data-draw', _config.state.currentColor);
+	  }
+	}
+
+	function setColor(event) {
+	  _config.state.currentColor = event.target.style.backgroundColor;
+	}
+
+	function clear() {
+	  for (var i = 0; i < _config.state.elements.squares.length; i++) {
+	    _config.state.elements.squares[i].style.backgroundColor = _config.squareColor;
+	    _config.state.elements.squares[i].removeAttribute('data-draw');
+	  }
+	  _config.state.hasDrawData = false;
+	}
+
+	function drawData(data, currentIndex) {
+	  _config.state.elements.nameInput.value = 'draw by: ' + data.name;
+	  drawPoints(data.points, currentIndex);
+	}
+
+	function drawPoints(points, currentIndex) {
+	  if (points.length < 1 || currentIndex != _config.state.drawingIndex || _config.state.drawMode) {
+	    _config.state.drawingServerData = false;
+	    return;
+	  }
+	  _config.state.drawingServerData = true;
+	  var rand = Math.floor(Math.random() * points.length);
+	  _config.state.elements.squares[points[rand].index].style.backgroundColor = points[rand].color;
+
+	  setTimeout(function () {
+	    points.splice(rand, 1);
+	    drawPoints(points, currentIndex);
+	  }, 50);
+	}
+
+	exports.default = function (config) {
+	  _config = config;
+	  return {
+	    beginDraw: beginDraw,
+	    stopDraw: stopDraw,
+	    draw: draw,
+	    setColor: setColor,
+	    clear: clear,
+	    drawData: drawData,
+	    prepareToDraw: prepareToDraw,
+	    cancelDraw: cancelDraw,
+	    drawDone: drawDone
+	  };
+	};
 
 /***/ }
 /******/ ]);

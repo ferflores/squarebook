@@ -1,5 +1,6 @@
 import errorMessage from './errorMessage';
 import axios from 'axios';
+import storage from 'key-storage';
 
 let dActions = null;
 let _config = null;
@@ -39,9 +40,13 @@ function postData(){
 
 function handlePostResponse(){
   errorMessage.displayMessage(_config.state.elements.wrapper, 'Your draw has been saved, thanks!');
+  _config.drawingActions.drawDone();
+  getRequest(0, 1);
 }
 
 function handleGetResponse(data){
+  _config.state.currentPoints = data.points.slice(0);
+  _config.state.currentName = data.name;
   _config.drawingActions.drawData(data, _config.state.drawingIndex);
 }
 
@@ -63,12 +68,14 @@ function getNextData(){
 
 function getRequest(index, increment){
   _config.drawingActions.clear();
+  _config.state.elements.nameInput.value = 'loading...';
   _config.state.loading = true;
   axios.get(`${_config.getDataUrl}/?index=${index}`).then(response => {
     if(!response.data.lastItem){
       _config.state.drawingIndex = _config.state.currentIndex;
       handleGetResponse(response.data);
       _config.state.currentIndex += increment;
+      storage.set('signed','true');
     }else{
       _config.state.topIndex = index;
       errorMessage.displayMessage(_config.state.elements.wrapper, 'There are no more items!');

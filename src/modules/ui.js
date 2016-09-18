@@ -1,3 +1,5 @@
+import storage from 'key-storage';
+
 let _config = null;
 let elements = null;
 let wrapper = null;
@@ -63,6 +65,7 @@ function createColors(){
     let color = document.createElement('div');
     color.className = 'squarebook_color';
     color.style.backgroundColor = colors[i].hex;
+    color.style.display = 'none';
     controlsWrapper.appendChild(color);
     elements.colors.push(color);
   }
@@ -93,10 +96,32 @@ function createInputs(){
   nameInput.type = "text";
   nameInput.placeholder = 'Your name';
   nameInput.setAttribute('maxlength', 15);
+  nameInput.setAttribute('readonly','readonly');
   controlsWrapper.appendChild(nameInput);
   elements.nameInput = nameInput;
 
+  let signButton = document.createElement('div');
+  signButton.className = 'squarebook_navButton';
+  signButton.style.float = 'left';
+  signButton.style.display = storage.get('sign') ? 'none' : 'inline';
+  controlsWrapper.appendChild(signButton);
+  elements.signButton = signButton;
+
+  let signButtonText = document.createTextNode('start drawing');
+  signButton.appendChild(signButtonText);
+
+  let cancelButton = document.createElement('div');
+  cancelButton.className = 'squarebook_navButton';
+  cancelButton.style.float = 'right';
+  cancelButton.style.display = 'none';
+  controlsWrapper.appendChild(cancelButton);
+  elements.cancelButton = cancelButton;
+
+  let cancelButtonText = document.createTextNode('cancel');
+  cancelButton.appendChild(cancelButtonText);
+
   let clearButton = document.createElement('div');
+  clearButton.style.display = 'none';
   clearButton.className = 'squarebook_navButton';
   controlsWrapper.appendChild(clearButton);
   elements.clearButton = clearButton;
@@ -105,6 +130,7 @@ function createInputs(){
   clearButton.appendChild(clearButtonText);
 
   let saveButton = document.createElement('div');
+  saveButton.style.display = 'none';
   saveButton.className = 'squarebook_navButton';
   controlsWrapper.appendChild(saveButton);
   elements.saveButton = saveButton;
@@ -148,13 +174,22 @@ function adjustUI(){
   elements.prevButton.style.height = (controlsWrapper.clientHeight) + 'px';
   elements.prevButton.style.fontSize = controlsWrapper.clientHeight + 'px';
 
-  elements.nameInput.style.width = (controlsWrapper.clientWidth / 20) * 4 - 2 +'px';
+  elements.signButton.style.width = (controlsWrapper.clientWidth / 20) * 4 - 2 +'px';
+  elements.signButton.style.height = (controlsWrapper.clientHeight) /2 + 'px';
+  elements.signButton.style.fontSize = controlsWrapper.clientHeight / 2 + 'px';
+  elements.signButton.style.marginTop = controlsWrapper.clientHeight / 5 + 'px';
+
+  elements.cancelButton.style.width = (controlsWrapper.clientWidth / 20) * 4 - 2 +'px';
+  elements.cancelButton.style.height = (controlsWrapper.clientHeight) /2 + 'px';
+  elements.cancelButton.style.fontSize = controlsWrapper.clientHeight / 2 + 'px';
+  elements.cancelButton.style.marginTop = controlsWrapper.clientHeight / 5 + 'px';
+
+  elements.nameInput.style.width = (controlsWrapper.clientWidth / 20) * 5 - 2 +'px';
   elements.nameInput.style.height = (controlsWrapper.clientHeight - 6) +'px';
-  elements.nameInput.style.fontSize = controlsWrapper.clientHeight / 2 + 'px';
   elements.nameInput.style.fontSize = controlsWrapper.clientHeight / 3 + 'px';
 
   elements.clearButton.style.width = (controlsWrapper.clientWidth / 20) * 2 - 2 +'px';
-  elements.clearButton.style.height = (controlsWrapper.clientHeight) /2 + 'px';
+  elements.clearButton.style.height = (controlsWrapper.clientHeight) / 2 + 'px';
   elements.clearButton.style.fontSize = controlsWrapper.clientHeight / 2 + 'px';
   elements.clearButton.style.marginTop = controlsWrapper.clientHeight / 5 + 'px';
 

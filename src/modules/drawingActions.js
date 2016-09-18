@@ -8,9 +8,64 @@ function stopDraw(event){
   _config.state.drawing = false;
 }
 
+function prepareToDraw(){
+  _config.state.drawMode = true;
+  clear();
+  _config.state.elements.clearButton.style.display = 'inline';
+  _config.state.elements.saveButton.style.display = 'inline';
+  _config.state.elements.signButton.style.display = 'none';
+  _config.state.elements.nextButton.style.display = 'none';
+  _config.state.elements.prevButton.style.display = 'none';
+  _config.state.elements.cancelButton.style.display = 'inline';
+  _config.state.elements.nameInput.removeAttribute('readonly');
+  _config.state.elements.nameInput.value = '';
+  _config.state.currentIndex = 0;
+  _config.state.drawingIndex = 0;
+  let colors = _config.state.elements.colors;
+  for (var i = 0; i < colors.length; i++) {
+    colors[i].style.display = 'inline';
+  }
+}
+
+function cancelDraw(){
+  _config.state.drawMode = false;
+  clear();
+  _config.state.elements.clearButton.style.display = 'none';
+  _config.state.elements.saveButton.style.display = 'none';
+  _config.state.elements.signButton.style.display = 'inline';
+  _config.state.elements.nextButton.style.display = 'inline';
+  _config.state.elements.prevButton.style.display = 'inline';
+  _config.state.elements.cancelButton.style.display = 'none';
+  _config.state.elements.nameInput.value = `draw by: ${_config.state.currentName}`;
+  _config.state.elements.nameInput.setAttribute('readonly', 'readonly');
+  _config.state.currentIndex = 0;
+  _config.state.drawingIndex = 0;
+  let colors = _config.state.elements.colors;
+  for (var i = 0; i < colors.length; i++) {
+    colors[i].style.display = 'none';
+  }
+
+  drawPoints(_config.state.currentPoints, _config.state.currentIndex);
+}
+
+function drawDone(){
+  _config.state.drawMode = false;
+  _config.state.elements.clearButton.style.display = 'none';
+  _config.state.elements.saveButton.style.display = 'none';
+  _config.state.elements.nextButton.style.display = 'inline';
+  _config.state.elements.prevButton.style.display = 'inline';
+  _config.state.elements.cancelButton.style.display = 'none';
+  _config.state.drawingIndex = 0;
+  _config.state.currentIndex = -1;
+  let colors = _config.state.elements.colors;
+  for (var i = 0; i < colors.length; i++) {
+    colors[i].style.display = 'none';
+  }
+}
+
 function draw(event){
   event.preventDefault();
-  if(_config.state.drawing){
+  if(_config.state.drawing && _config.state.drawMode){
     _config.state.hasDrawData = true;
     event.target.style.backgroundColor = _config.state.currentColor;
     event.target.setAttribute('data-draw',_config.state.currentColor);
@@ -30,12 +85,12 @@ function clear(){
 }
 
 function drawData(data, currentIndex){
-  _config.state.elements.nameInput.value = data.name;
+  _config.state.elements.nameInput.value = `draw by: ${data.name}`;
   drawPoints(data.points, currentIndex);
 }
 
 function drawPoints(points, currentIndex){
-  if(points.length < 1 || currentIndex != _config.state.drawingIndex){
+  if(points.length < 1 || currentIndex != _config.state.drawingIndex || _config.state.drawMode){
     _config.state.drawingServerData = false;
     return;
   }
@@ -46,7 +101,7 @@ function drawPoints(points, currentIndex){
   setTimeout(() => {
     points.splice(rand,1);
     drawPoints(points, currentIndex);
-  }, 100);
+  }, 50);
 }
 
 export default config => {
@@ -57,7 +112,10 @@ export default config => {
       draw:draw,
       setColor: setColor,
       clear: clear,
-      drawData:drawData
+      drawData:drawData,
+      prepareToDraw:prepareToDraw,
+      cancelDraw:cancelDraw,
+      drawDone:drawDone
   }
 
 }

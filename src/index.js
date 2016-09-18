@@ -8,10 +8,13 @@ let _config = {
   state: {
     currentColor: '#FF0000',
     currentIndex: -1,
+    currentName: '',
+    currentPoints: [],
     drawingIndex: 0,
     drawingServerData: false,
     loading: false,
     drawing:false,
+    drawMode: false,
     hasDrawData: false,
     topIndex: null,
     elements: {
@@ -23,6 +26,8 @@ let _config = {
       controlsWrapper: null,
       nextButton: null,
       prevButton: null,
+      signButton: null,
+      cancelButton: null,
       clearButton:null,
       saveButton:null,
       nameInput:null
