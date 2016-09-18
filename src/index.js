@@ -22,7 +22,9 @@ let _config = {
     }
   },
   backgroundColor: '#0e1122',
-  squareColor:'#282754'
+  squareColor:'#282754',
+  postDataUrl: null,
+  getDataUrl: null
 }
 
 function render(){
@@ -33,9 +35,15 @@ function render(){
 
 function squarebook(config){
   if(config){
-    _config = Object.assign(_config, config);
+    if(!config.postDataUrl || !config.getDataUrl || !config.container){
+      throw new Error('squarebook: container, postDataUrl and getDataUrl are required in configuration');
+    }else{
+      _config = Object.assign(_config, config);
+      render();
+    }
+  }else{
+    throw new Error('squarebook: missing configuration object');
   }
-  render();
 }
 
 window.squarebook = squarebook;
