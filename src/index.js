@@ -6,6 +6,7 @@ let _config = {
   state: {
     currentColor: '#FF0000',
     drawing:false,
+    hasDrawData: false,
     elements: {
       container: null,
       wrapper: null,

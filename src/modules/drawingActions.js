@@ -12,6 +12,7 @@ function stopDraw(event){
 function draw(event){
   event.preventDefault();
   if(_config.state.drawing){
+    _config.state.hasDrawData = true;
     event.target.style.backgroundColor = _config.state.currentColor;
   }
 }
@@ -24,6 +25,7 @@ function clear(){
   for (var i = 0; i < _config.state.elements.squares.length; i++) {
     _config.state.elements.squares[i].style.backgroundColor = _config.squareColor;
   }
+  _config.state.hasDrawData = false;
 }
 
 export default config => {

@@ -64,6 +64,7 @@
 	  state: {
 	    currentColor: '#FF0000',
 	    drawing: false,
+	    hasDrawData: false,
 	    elements: {
 	      container: null,
 	      wrapper: null,
@@ -321,13 +322,22 @@
 	  value: true
 	});
 
-	var _drawingActions = __webpack_require__(5);
+	var _drawingActions = __webpack_require__(4);
 
 	var _drawingActions2 = _interopRequireDefault(_drawingActions);
+
+	var _serverActions = __webpack_require__(5);
+
+	var _serverActions2 = _interopRequireDefault(_serverActions);
 
 	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 	function bindEvents(config) {
+	  bindDrawingEvents(config);
+	  bindServerEvents(config);
+	}
+
+	function bindDrawingEvents(config) {
 	  var actions = (0, _drawingActions2.default)(config);
 	  var elements = config.state.elements;
 	  elements.wrapper.addEventListener('mouseup', actions.stopDraw);
@@ -342,7 +352,14 @@
 	    elements.colors[i].addEventListener('mousedown', actions.setColor);
 	  }
 
-	  elements.clearButton.addEventListener('mousedown', actions.clear);
+	  elements.clearButton.addEventListener('click', actions.clear);
+	}
+
+	function bindServerEvents(config) {
+	  var actions = (0, _serverActions2.default)(config);
+	  var elements = config.state.elements;
+
+	  elements.saveButton.addEventListener('click', actions.save);
 	}
 
 	exports.default = function (config) {
@@ -350,8 +367,7 @@
 	};
 
 /***/ },
-/* 4 */,
-/* 5 */
+/* 4 */
 /***/ function(module, exports) {
 
 	"use strict";
@@ -373,6 +389,7 @@
 	function draw(event) {
 	  event.preventDefault();
 	  if (_config.state.drawing) {
+	    _config.state.hasDrawData = true;
 	    event.target.style.backgroundColor = _config.state.currentColor;
 	  }
 	}
@@ -385,6 +402,7 @@
 	  for (var i = 0; i < _config.state.elements.squares.length; i++) {
 	    _config.state.elements.squares[i].style.backgroundColor = _config.squareColor;
 	  }
+	  _config.state.hasDrawData = false;
 	}
 
 	exports.default = function (config) {
@@ -396,6 +414,74 @@
 	    setColor: setColor,
 	    clear: clear
 	  };
+	};
+
+/***/ },
+/* 5 */
+/***/ function(module, exports, __webpack_require__) {
+
+	'use strict';
+
+	Object.defineProperty(exports, "__esModule", {
+	  value: true
+	});
+
+	var _errorMessage = __webpack_require__(6);
+
+	var _errorMessage2 = _interopRequireDefault(_errorMessage);
+
+	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+	var _config = null;
+
+	function save() {
+	  if (!_config.state.hasDrawData) {
+	    _errorMessage2.default.displayMessage(_config.state.elements.wrapper, 'Draw something!');
+	  }
+	}
+
+	exports.default = function (config) {
+	  _config = config;
+
+	  return {
+	    save: save
+	  };
+	};
+
+/***/ },
+/* 6 */
+/***/ function(module, exports) {
+
+	'use strict';
+
+	Object.defineProperty(exports, "__esModule", {
+	  value: true
+	});
+	function displayMessage(wrapper, message) {
+	  if (document.getElementById('squarebook_error')) {
+	    return;
+	  }
+
+	  var div = document.createElement('div');
+	  div.id = 'squarebook_error';
+	  div.style.backgroundColor = 'black';
+	  div.style.width = wrapper.clientWidth + 'px';
+	  div.style.height = wrapper.clientHeight / 10 + 'px';
+	  div.style.position = 'absolute';
+	  div.style.textAlign = 'center';
+	  div.style.color = 'red';
+	  var text = document.createTextNode(message);
+	  div.appendChild(text);
+
+	  wrapper.appendChild(div);
+
+	  setTimeout(function () {
+	    document.getElementById('squarebook_error').parentNode.removeChild(document.getElementById('squarebook_error'));
+	  }, 3000);
+	}
+
+	exports.default = {
+	  displayMessage: displayMessage
 	};
 
 /***/ }

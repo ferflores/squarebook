@@ -1,6 +1,12 @@
 import drawingActions from './drawingActions';
+import serverActions from './serverActions';
 
 function bindEvents(config){
+  bindDrawingEvents(config);
+  bindServerEvents(config);
+}
+
+function bindDrawingEvents(config){
   let actions = drawingActions(config);
   let elements = config.state.elements;
   elements.wrapper.addEventListener('mouseup', actions.stopDraw);
@@ -15,7 +21,14 @@ function bindEvents(config){
     elements.colors[i].addEventListener('mousedown', actions.setColor);
   }
 
-  elements.clearButton.addEventListener('mousedown', actions.clear);
+  elements.clearButton.addEventListener('click', actions.clear);
+}
+
+function bindServerEvents(config){
+  let actions = serverActions(config);
+  let elements = config.state.elements;
+  
+  elements.saveButton.addEventListener('click', actions.save);
 }
 
 export default config => {
