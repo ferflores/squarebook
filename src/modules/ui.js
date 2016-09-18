@@ -32,13 +32,13 @@ function createWrapper(){
 
 function createSquares(){
 
-  for (var i = 0; i < 30; i++) {
+  for (var i = 0; i < 20; i++) {
     var row = document.createElement('div');
     row.className = "squarebook_row";
     wrapper.appendChild(row);
     elements.squareRows.push(row);
-    
-    for (var j = 0; j < 50;j++) {
+
+    for (var j = 0; j < 30;j++) {
       var squareDiv = document.createElement('div');
       squareDiv.className = 'squarebook_square';
       row.appendChild(squareDiv);
@@ -89,6 +89,7 @@ function createNavButtons(){
 function createInputs(){
   var nameInput = document.createElement("input");
   nameInput.className = 'squarebook_nameInput';
+  nameInput.id = 'squarebook_nameInput'
   nameInput.type = "text";
   nameInput.placeholder = 'Your name';
   nameInput.setAttribute('maxlength', 15);
@@ -123,8 +124,8 @@ function adjustUI(){
   setTimeout(()=>{adjusting=false},2000);
 
   let controlsHeight = wrapper.clientHeight / 10;
-  let squareWidth = (wrapper.clientWidth / 50) - 2;
-  let squareHeight = ((wrapper.clientHeight-controlsHeight) / 30) - 2;
+  let squareWidth = (wrapper.clientWidth / 30) - 2;
+  let squareHeight = ((wrapper.clientHeight-controlsHeight) / 20) - 2;
 
   for (var i = 0; i < elements.squares.length; i++) {
     elements.squares[i].style.width = squareWidth + 'px';

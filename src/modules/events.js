@@ -1,34 +1,31 @@
-import drawingActions from './drawingActions';
-import serverActions from './serverActions';
-
 function bindEvents(config){
   bindDrawingEvents(config);
   bindServerEvents(config);
 }
 
 function bindDrawingEvents(config){
-  let actions = drawingActions(config);
   let elements = config.state.elements;
-  elements.wrapper.addEventListener('mouseup', actions.stopDraw);
-  elements.wrapper.addEventListener('mouseleave', actions.stopDraw);
-  elements.wrapper.addEventListener('mousedown', actions.beginDraw);
+  elements.wrapper.addEventListener('mouseup', config.drawingActions.stopDraw);
+  elements.wrapper.addEventListener('mouseleave', config.drawingActions.stopDraw);
+  elements.wrapper.addEventListener('mousedown', config.drawingActions.beginDraw);
 
   for (var i = 0; i < elements.squares.length; i++) {
-    elements.squares[i].addEventListener('mousemove', actions.draw);
+    elements.squares[i].addEventListener('mousemove', config.drawingActions.draw);
   }
 
   for (var i = 0; i < elements.colors.length; i++) {
-    elements.colors[i].addEventListener('mousedown', actions.setColor);
+    elements.colors[i].addEventListener('mousedown', config.drawingActions.setColor);
   }
 
-  elements.clearButton.addEventListener('click', actions.clear);
+  elements.clearButton.addEventListener('click', config.drawingActions.clear);
 }
 
 function bindServerEvents(config){
-  let actions = serverActions(config);
   let elements = config.state.elements;
-  
-  elements.saveButton.addEventListener('click', actions.save);
+
+  elements.saveButton.addEventListener('click', config.serverActions.postData);
+  elements.nextButton.addEventListener('click', config.serverActions.getNextData);
+  elements.prevButton.addEventListener('click', config.serverActions.getPrevData);
 }
 
 export default config => {
