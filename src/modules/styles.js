@@ -7,9 +7,14 @@ function buildCss(config) {
         height:100%;
         background-color: ${config.backgroundColor || '#0e1122'};
         -khtml-opacity: ${config.opacity || .8};
+        -webkit-opacity: ${config.opacity || .8};
         opacity: ${config.backgroundColor || .8};
         position:relative;
         font-family:Arial;
+        -moz-user-select: none;
+        -khtml-user-select: none;
+        user-select: none;
+        -webkit-user-select: none;
     }
 
     .squarebook_square {

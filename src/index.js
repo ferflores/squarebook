@@ -1,14 +1,18 @@
-import styles from './modules/styles';
+import loadStyles from './modules/styles';
 import ui from './modules/ui';
+import bindEvents from './modules/events';
 
 let _config = {
   state: {
+    currentColor: '#FF0000',
+    drawing:false,
     elements: {
       container: null,
       wrapper: null,
       squares:[],
-      controlsWrapper: null,
+      squareRows:[],
       colors: [],
+      controlsWrapper: null,
       nextButton: null,
       prevButton: null,
       clearButton:null,
@@ -16,12 +20,14 @@ let _config = {
       nameInput:null
     }
   },
-  backgroundColor: '#0e1122'
+  backgroundColor: '#0e1122',
+  squareColor:'#282754'
 }
 
 function render(){
- styles(_config);
+ loadStyles(_config);
  ui(_config).build();
+ bindEvents(_config);
 }
 
 function squarebook(config){

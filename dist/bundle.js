@@ -50,20 +50,27 @@
 
 	var _styles2 = _interopRequireDefault(_styles);
 
-	var _ui = __webpack_require__(3);
+	var _ui = __webpack_require__(2);
 
 	var _ui2 = _interopRequireDefault(_ui);
+
+	var _events = __webpack_require__(3);
+
+	var _events2 = _interopRequireDefault(_events);
 
 	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 	var _config = {
 	  state: {
+	    currentColor: '#FF0000',
+	    drawing: false,
 	    elements: {
 	      container: null,
 	      wrapper: null,
 	      squares: [],
-	      controlsWrapper: null,
+	      squareRows: [],
 	      colors: [],
+	      controlsWrapper: null,
 	      nextButton: null,
 	      prevButton: null,
 	      clearButton: null,
@@ -71,12 +78,14 @@
 	      nameInput: null
 	    }
 	  },
-	  backgroundColor: '#0e1122'
+	  backgroundColor: '#0e1122',
+	  squareColor: '#282754'
 	};
 
 	function render() {
 	  (0, _styles2.default)(_config);
 	  (0, _ui2.default)(_config).build();
+	  (0, _events2.default)(_config);
 	}
 
 	function squarebook(config) {
@@ -99,7 +108,7 @@
 	});
 
 	function buildCss(config) {
-	  var cssText = '\n    .squarebook_wrapper {\n        width:100%;\n        height:100%;\n        background-color: ' + (config.backgroundColor || '#0e1122') + ';\n        -khtml-opacity: ' + (config.opacity || .8) + ';\n        opacity: ' + (config.backgroundColor || .8) + ';\n        position:relative;\n        font-family:Arial;\n    }\n\n    .squarebook_square {\n      background-color: ' + (config.squareColor || '#282754') + ';\n      float:left;\n      margin:1px;\n    }\n\n    .squarebook_square:hover {\n      background-color: ' + (config.squareColorHover || '#595881') + ';\n    }\n\n    .squarebook_controls {\n      background-color:black;\n      position:absolute;\n      bottom:0;\n    }\n\n    .squarebook_color {\n      float:right;\n      border: 1px dashed #555555;\n      cursor:pointer;\n    }\n\n    .squarebook_color:hover {\n      border: 1px solid #FFFFFF;\n    }\n\n    .squarebook_navButton {\n      float:right;\n      color:#777777;\n      text-align:center;\n      cursor:pointer;\n      -webkit-touch-callout: none;\n      -webkit-user-select: none;\n      -khtml-user-select: none;\n      -moz-user-select: none;\n      -ms-user-select: none;\n      user-select: none;\n      font-weight:none;\n    }\n\n    .squarebook_navButton:hover {\n      background-color:#121645;\n    }\n\n    .squarebook_nameInput {\n      border:none;\n      background-color:black;\n      color:white;\n    }\n  ';
+	  var cssText = '\n    .squarebook_wrapper {\n        width:100%;\n        height:100%;\n        background-color: ' + (config.backgroundColor || '#0e1122') + ';\n        -khtml-opacity: ' + (config.opacity || .8) + ';\n        -webkit-opacity: ' + (config.opacity || .8) + ';\n        opacity: ' + (config.backgroundColor || .8) + ';\n        position:relative;\n        font-family:Arial;\n        -moz-user-select: none;\n        -khtml-user-select: none;\n        user-select: none;\n        -webkit-user-select: none;\n    }\n\n    .squarebook_square {\n      background-color: ' + (config.squareColor || '#282754') + ';\n      float:left;\n      margin:1px;\n    }\n\n    .squarebook_square:hover {\n      background-color: ' + (config.squareColorHover || '#595881') + ';\n    }\n\n    .squarebook_controls {\n      background-color:black;\n      position:absolute;\n      bottom:0;\n    }\n\n    .squarebook_color {\n      float:right;\n      border: 1px dashed #555555;\n      cursor:pointer;\n    }\n\n    .squarebook_color:hover {\n      border: 1px solid #FFFFFF;\n    }\n\n    .squarebook_navButton {\n      float:right;\n      color:#777777;\n      text-align:center;\n      cursor:pointer;\n      -webkit-touch-callout: none;\n      -webkit-user-select: none;\n      -khtml-user-select: none;\n      -moz-user-select: none;\n      -ms-user-select: none;\n      user-select: none;\n      font-weight:none;\n    }\n\n    .squarebook_navButton:hover {\n      background-color:#121645;\n    }\n\n    .squarebook_nameInput {\n      border:none;\n      background-color:black;\n      color:white;\n    }\n  ';
 
 	  return cssText;
 	}
@@ -120,8 +129,7 @@
 	};
 
 /***/ },
-/* 2 */,
-/* 3 */
+/* 2 */
 /***/ function(module, exports) {
 
 	'use strict';
@@ -160,6 +168,7 @@
 	    var row = document.createElement('div');
 	    row.className = "squarebook_row";
 	    wrapper.appendChild(row);
+	    elements.squareRows.push(row);
 
 	    for (var j = 0; j < 50; j++) {
 	      var squareDiv = document.createElement('div');
@@ -299,6 +308,93 @@
 	  elements = config.state.elements;
 	  return {
 	    build: build
+	  };
+	};
+
+/***/ },
+/* 3 */
+/***/ function(module, exports, __webpack_require__) {
+
+	'use strict';
+
+	Object.defineProperty(exports, "__esModule", {
+	  value: true
+	});
+
+	var _drawingActions = __webpack_require__(5);
+
+	var _drawingActions2 = _interopRequireDefault(_drawingActions);
+
+	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+	function bindEvents(config) {
+	  var actions = (0, _drawingActions2.default)(config);
+	  var elements = config.state.elements;
+	  elements.wrapper.addEventListener('mouseup', actions.stopDraw);
+	  elements.wrapper.addEventListener('mouseleave', actions.stopDraw);
+	  elements.wrapper.addEventListener('mousedown', actions.beginDraw);
+
+	  for (var i = 0; i < elements.squares.length; i++) {
+	    elements.squares[i].addEventListener('mousemove', actions.draw);
+	  }
+
+	  for (var i = 0; i < elements.colors.length; i++) {
+	    elements.colors[i].addEventListener('mousedown', actions.setColor);
+	  }
+
+	  elements.clearButton.addEventListener('mousedown', actions.clear);
+	}
+
+	exports.default = function (config) {
+	  bindEvents(config);
+	};
+
+/***/ },
+/* 4 */,
+/* 5 */
+/***/ function(module, exports) {
+
+	"use strict";
+
+	Object.defineProperty(exports, "__esModule", {
+	  value: true
+	});
+	var _config = null;
+
+	function beginDraw(event) {
+	  event.preventDefault();
+	  _config.state.drawing = true;
+	}
+
+	function stopDraw(event) {
+	  _config.state.drawing = false;
+	}
+
+	function draw(event) {
+	  event.preventDefault();
+	  if (_config.state.drawing) {
+	    event.target.style.backgroundColor = _config.state.currentColor;
+	  }
+	}
+
+	function setColor(event) {
+	  _config.state.currentColor = event.target.style.backgroundColor;
+	}
+
+	function clear() {
+	  for (var i = 0; i < _config.state.elements.squares.length; i++) {
+	    _config.state.elements.squares[i].style.backgroundColor = _config.squareColor;
+	  }
+	}
+
+	exports.default = function (config) {
+	  _config = config;
+	  return {
+	    beginDraw: beginDraw,
+	    stopDraw: stopDraw,
+	    draw: draw,
+	    setColor: setColor,
+	    clear: clear
 	  };
 	};
 

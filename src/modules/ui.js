@@ -36,7 +36,8 @@ function createSquares(){
     var row = document.createElement('div');
     row.className = "squarebook_row";
     wrapper.appendChild(row);
-
+    elements.squareRows.push(row);
+    
     for (var j = 0; j < 50;j++) {
       var squareDiv = document.createElement('div');
       squareDiv.className = 'squarebook_square';
