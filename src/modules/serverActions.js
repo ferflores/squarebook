@@ -2,8 +2,11 @@ import errorMessage from './errorMessage';
 import axios from 'axios';
 import storage from 'key-storage';
 
-let dActions = null;
 let _config = null;
+
+function displayNoItemsData(config){
+  config.drawingActions.drawData(def.noData, -1);
+}
 
 function postData(){
   let name = document.getElementById('squarebook_nameInput');
@@ -13,6 +16,8 @@ function postData(){
   }else if(name.value.length<3){
     errorMessage.displayMessage(_config.state.elements.wrapper, 'Please input your name!');
   }else{
+    _config.state.elements.saveButton.removeEventListener('click', config.serverActions.postData);
+
     var data = {
       name: name.value,
       points:[]
@@ -33,7 +38,8 @@ function postData(){
     axios.post(_config.postDataUrl, data).then(response => {
         handlePostResponse();
     }).catch(error => {
-      errorMessage.displayMessage(_config.state.elements.wrapper, error)
+      errorMessage.displayMessage(_config.state.elements.wrapper, error);
+      _config.state.elements.saveButton.addEventListener('click', _config.serverActions.postData);
     });
   }
 }
@@ -42,12 +48,15 @@ function handlePostResponse(){
   errorMessage.displayMessage(_config.state.elements.wrapper, 'Your draw has been saved, thanks!');
   _config.drawingActions.drawDone();
   getRequest(0, 1);
+  storage.set('signed','true');
 }
 
-function handleGetResponse(data){
+function handleGetResponse(data, increment){
+  _config.state.drawingIndex = _config.state.currentIndex;
   _config.state.currentPoints = data.points.slice(0);
   _config.state.currentName = data.name;
   _config.drawingActions.drawData(data, _config.state.drawingIndex);
+  _config.state.currentIndex += increment;
 }
 
 function getPrevData(){
@@ -71,19 +80,16 @@ function getRequest(index, increment){
   _config.state.elements.nameInput.value = 'loading...';
   _config.state.loading = true;
   axios.get(`${_config.getDataUrl}/?index=${index}`).then(response => {
-    if(!response.data.lastItem){
-      _config.state.drawingIndex = _config.state.currentIndex;
-      handleGetResponse(response.data);
-      _config.state.currentIndex += increment;
-      storage.set('signed','true');
+    if(response.data){
+      handleGetResponse(response.data, increment);
     }else{
       _config.state.topIndex = index;
-      errorMessage.displayMessage(_config.state.elements.wrapper, 'There are no more items!');
+      displayNoItemsData(_config);
     }
     _config.state.loading = false;
   }).catch(error => {
     errorMessage.displayMessage(_config.state.elements.wrapper, error);
-    _config.state.loading = true;
+    _config.state.loading = false;
   });
 }
 

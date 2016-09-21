@@ -2,12 +2,13 @@ import loadStyles from './modules/styles';
 import ui from './modules/ui';
 import bindEvents from './modules/events';
 import serverActions from './modules/serverActions';
+import firebaseActions from './modules/firebaseActions';
 import drawingActions from './modules/drawingActions';
 
 let _config = {
   state: {
     currentColor: '#FF0000',
-    currentIndex: -1,
+    currentIndex: 0,
     currentName: '',
     currentPoints: [],
     drawingIndex: 0,
@@ -38,7 +39,8 @@ let _config = {
   postDataUrl: null,
   getDataUrl: null,
   serverActions:null,
-  drawingActions:null
+  drawingActions:null,
+  firebaseConfig:null
 };
 
 function render(){
@@ -49,11 +51,13 @@ function render(){
 
 function squarebook(config){
   if(config){
-    if(!config.postDataUrl || !config.getDataUrl || !config.container){
-      throw new Error('squarebook: container, postDataUrl and getDataUrl are required in configuration');
+    if(!config.container || !config.firebaseConfig && (!config.postDataUrl || !config.getDataUrl) ){
+      throw new
+        Error(`squarebook: container, postDataUrl and getDataUrl or firebaseConfig
+          are required in configuration, read README.MD file`);
     }else{
       _config = Object.assign(_config, config);
-      _config.serverActions = serverActions(_config);
+      _config.serverActions = _config.firebaseConfig ? firebaseActions(_config) : serverActions(_config);
       _config.drawingActions = drawingActions(_config);
       render();
       _config.serverActions.getNextData();
