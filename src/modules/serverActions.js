@@ -1,6 +1,7 @@
 import errorMessage from './errorMessage';
 import httpActions from './serverComm/httpActions';
 import firebaseActions from './serverComm/firebaseActions';
+import storage from 'key-storage';
 
 let serverActions = null;
 
@@ -36,8 +37,8 @@ function handleGetResponse(config, data){
 function handlePostResponse(config){
   errorMessage.displayMessage(config.state.elements.wrapper, 'Your draw has been saved, thanks!');
   config.drawingActions.drawDone();
+  storage.set('sign','true');
   getRequest(config, 0, 1);
-  storage.set('signed','true');
 }
 
 export default config => {

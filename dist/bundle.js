@@ -1173,6 +1173,10 @@
 
 	var _firebaseActions2 = _interopRequireDefault(_firebaseActions);
 
+	var _keyStorage = __webpack_require__(3);
+
+	var _keyStorage2 = _interopRequireDefault(_keyStorage);
+
 	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 	var serverActions = null;
@@ -1209,8 +1213,8 @@
 	function handlePostResponse(config) {
 	  _errorMessage2.default.displayMessage(config.state.elements.wrapper, 'Your draw has been saved, thanks!');
 	  config.drawingActions.drawDone();
+	  _keyStorage2.default.set('sign', 'true');
 	  getRequest(config, 0, 1);
-	  storage.set('signed', 'true');
 	}
 
 	exports.default = function (config) {
