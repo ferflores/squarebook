@@ -30,6 +30,7 @@ function getData(config, index, increment, responseHandler){
         config.state.topIndex = index;
         config.state.currentIndex -= increment;
       }else{
+        pointObjectsToArray(value);
         responseHandler(config, value);
       }
       config.state.loading = false;
@@ -39,6 +40,17 @@ function getData(config, index, increment, responseHandler){
       config.state.currentIndex -= increment;
     });
   });
+}
+
+function pointObjectsToArray(value){
+  var points = [];
+  for(var point in value.points){
+    if(value.points.hasOwnProperty(point)){
+      points.push(value.points[point]);
+    }
+  }
+
+  value.points = points;
 }
 
 function postData(config, responseHandler){
@@ -56,7 +68,8 @@ function postData(config, responseHandler){
     postRef.once("value", snapshot =>  {
       var data = {
         name: name.value.replace(/[^a-z0-9áéíóúñü \.,_-]/gim,""),
-        points:[]
+        points:[],
+        timestamp: firebase.database.ServerValue.TIMESTAMP
       }
 
       let squares = config.state.elements.squares;
@@ -64,10 +77,10 @@ function postData(config, responseHandler){
       for (var i = 0; i < squares.length; i++) {
         let color = squares[i].getAttribute('data-draw');
         if(color){
-          data.points.push({
+          data.points[`p${i}`]= {
             color:color,
             index:i
-          })
+          }
         }
       }
 
