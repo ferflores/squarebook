@@ -81,23 +81,24 @@ function clear(){
   _config.state.hasDrawData = false;
 }
 
-function drawData(data, currentIndex){
+function drawData(data, currentIndex, force){
   _config.state.elements.nameInput.value = `draw by: ${data.name}`;
-  drawPoints(data.points, currentIndex);
+  drawPoints(data.points, currentIndex, force);
 }
 
-function drawPoints(points, currentIndex){
-  if(points.length < 1 || currentIndex != _config.state.currentIndex || _config.state.drawMode){
+function drawPoints(points, currentIndex, force){
+  if(points.length < 1 || (currentIndex != _config.state.currentIndex || _config.state.drawMode ) && !force){
     _config.state.drawingServerData = false;
     return;
   }
+
   _config.state.drawingServerData = true;
   var rand = Math.floor(Math.random() * points.length);
   _config.state.elements.squares[points[rand].index].style.backgroundColor = points[rand].color;
 
   setTimeout(() => {
     points.splice(rand,1);
-    drawPoints(points, currentIndex);
+    drawPoints(points, currentIndex, force);
   }, 50);
 }
 

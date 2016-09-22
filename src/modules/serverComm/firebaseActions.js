@@ -10,7 +10,7 @@ function initializeFirebase(firebaseConfig){
 }
 
 function displayNoItemsData(config){
-  config.drawingActions.drawData(def.noData, -1);
+  config.drawingActions.drawData({name:def.noData.name, points: def.noData.points.slice(0)}, -1, true);
   config.state.currentIndex++;
 }
 
