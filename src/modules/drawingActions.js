@@ -55,6 +55,7 @@ function drawDone(){
   _config.state.elements.nextButton.style.display = 'inline';
   _config.state.elements.prevButton.style.display = 'inline';
   _config.state.elements.cancelButton.style.display = 'none';
+  _config.state.elements.nameInput.setAttribute('readonly', 'readonly');
   let colors = _config.state.elements.colors;
   for (var i = 0; i < colors.length; i++) {
     colors[i].style.display = 'none';
