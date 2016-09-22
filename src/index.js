@@ -10,7 +10,6 @@ let _config = {
     currentIndex: -1,
     currentName: '',
     currentPoints: [],
-    drawingIndex: 0,
     drawingServerData: false,
     loading: false,
     drawing:false,
@@ -38,7 +37,8 @@ let _config = {
   postDataUrl: null,
   getDataUrl: null,
   serverActions:null,
-  drawingActions:null
+  drawingActions:null,
+  firebaseConfig:null
 };
 
 function render(){
@@ -49,8 +49,10 @@ function render(){
 
 function squarebook(config){
   if(config){
-    if(!config.postDataUrl || !config.getDataUrl || !config.container){
-      throw new Error('squarebook: container, postDataUrl and getDataUrl are required in configuration');
+    if(!config.container || !config.firebaseConfig && (!config.postDataUrl || !config.getDataUrl) ){
+      throw new
+        Error(`squarebook: container, postDataUrl and getDataUrl or firebaseConfig
+          are required in configuration, read README.MD file`);
     }else{
       _config = Object.assign(_config, config);
       _config.serverActions = serverActions(_config);
