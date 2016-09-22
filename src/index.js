@@ -66,3 +66,4 @@ function squarebook(config){
 }
 
 window.squarebook = squarebook;
+export default squarebook;
