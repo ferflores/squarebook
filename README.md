@@ -36,3 +36,19 @@ And open example/index.html in your browser
 It looks like this:
 
 ![preview image](doc/preview.jpg)
+
+Squarebook has also integration with firebase:
+
+```
+squarebook({
+  container:container,
+  firebaseConfig:{
+    apiKey: "",
+    authDomain: "",
+    databaseURL: "",
+    storageBucket: "",
+    messagingSenderId: ""
+  }
+})
+```
+It saves and loads data from your firebase project on /posts/
