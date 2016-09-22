@@ -51,4 +51,43 @@ squarebook({
   }
 })
 ```
-It saves and loads data from your firebase project on /posts/
+It saves and loads data from your firebase project on /posts/.
+
+The firebase DB is structured like this:
+
+```
+{
+  "posts" : {
+    "post0" : {
+      "name" : "John Doe",
+      "points" : {
+        "p0" : {
+          "color" : "rgb(255, 0, 255)",
+          "index" : 217
+        },
+        "p1" : {
+          "color" : "rgb(255, 0, 255)",
+          "index" : 248
+        }
+      },
+      "timestamp" : 1474550661088
+    },
+    "post1" : {
+      "name" : "Fer",
+      "points" : {
+        "p0" : {
+          "color" : "rgb(0, 255, 0)",
+          "index" : 108
+        },
+        "p1" : {
+          "color" : "rgb(0, 255, 0)",
+          "index" : 109
+        }
+      },
+      "timestamp" : 1474551206518
+    }
+  }
+}
+```
+
+The database rules are on your own.
