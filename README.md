@@ -35,7 +35,7 @@ And open example/index.html in your browser
 
 It looks like this:
 
-![preview image](doc/preview.jpg)
+![preview image](doc/preview.gif)
 
 Squarebook has also integration with firebase:
 

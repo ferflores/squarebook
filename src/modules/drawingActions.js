@@ -1,6 +1,7 @@
 let _config = null;
 
 function beginDraw(event){
+  event.preventDefault();
   _config.state.drawing = true;
 }
 
