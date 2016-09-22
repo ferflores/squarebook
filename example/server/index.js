@@ -34,9 +34,7 @@ app.get('/getData', (req, res) => {
   var index = (posts.length - req.query.index)-1;
 
   if(index < 0){
-    res.send({
-      lastItem:true
-    })
+    res.send(null)
   }else{
     res.send(posts[index])
   }

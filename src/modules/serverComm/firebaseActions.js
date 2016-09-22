@@ -1,35 +1,20 @@
 import firebase from 'firebase/app';
 import db from 'firebase/database';
-import def from './defaultData';
+import def from '../defaultData';
+import errorMessage from '../errorMessage';
 
 let app = null;
-
-function displayNoItemsData(config){
-  config.drawingActions.drawData(def.noData, -1);
-  config.state.currentIndex++;
-  config.state.drawingIndex++;
-}
 
 function initializeFirebase(firebaseConfig){
   app = firebase.initializeApp(firebaseConfig);
 }
 
-function getNextData(config){
-  if(config.state.loading || (config.state.topIndex && config.state.currentIndex + 1 >= config.state.topIndex)){
-    return;
-  }
-
-  getRequest(config, config.state.currentIndex, 1);
+function displayNoItemsData(config){
+  config.drawingActions.drawData(def.noData, -1);
+  config.state.currentIndex++;
 }
 
-function getPrevData(config){
-  if(config.state.loading || config.state.currentIndex - 1 < 0){
-    return;
-  }
-  getRequest(config, config.state.currentIndex, -1);
-}
-
-function getRequest(config, index, increment){
+function getData(config, index, increment, responseHandler){
   config.drawingActions.clear();
   config.state.elements.nameInput.value = 'loading...';
   config.state.loading = true;
@@ -37,39 +22,26 @@ function getRequest(config, index, increment){
   var postRef = app.database().ref('/posts');
   postRef.once("value", snapshot =>  {
     var count = snapshot.numChildren();
-    var getRef = app.database().ref(`/posts/post${count-(index == 0 ? 1 : index+increment)}`);
+    var getRef = app.database().ref(`/posts/post${count-(index == 0 ? 1 : index + 1)}`);
     getRef.once('value', snapshot =>  {
       var value = snapshot.val();
       if(!value){
         displayNoItemsData(config);
         config.state.topIndex = index;
+        config.state.currentIndex -= increment;
       }else{
-        handleGetResponse(config, snapshot.val(), increment);
+        responseHandler(config, value);
       }
       config.state.loading = false;
     }, error => {
-      errorMessage.displayMessage(_config.state.elements.wrapper, error);
+      errorMessage.displayMessage(config.state.elements.wrapper, error);
       config.state.loading = false;
+      config.state.currentIndex -= increment;
     });
   });
 }
 
-function handleGetResponse(config, data, increment){
-  config.state.drawingIndex = config.state.currentIndex;
-  config.state.currentPoints = data.points.slice(0);
-  config.state.currentName = data.name;
-  config.drawingActions.drawData(data, config.state.drawingIndex);
-  config.state.currentIndex += increment;
-}
-
-function handlePostResponse(config){
-  errorMessage.displayMessage(config.state.elements.wrapper, 'Your draw has been saved, thanks!');
-  config.drawingActions.drawDone();
-  getRequest(config, 0, 1);
-  storage.set('signed','true');
-}
-
-function postData(config){
+function postData(config, responseHandler){
 
   let name = document.getElementById('squarebook_nameInput');
 
@@ -102,10 +74,10 @@ function postData(config){
       var nextIndex = snapshot.numChildren();
       app.database().ref(`/posts/post${nextIndex}`).set(data, error => {
         if(error){
-          errorMessage.displayMessage(_config.state.elements.wrapper, error);
+          errorMessage.displayMessage(config.state.elements.wrapper, error);
           config.state.elements.saveButton.addEventListener('click', config.serverActions.postData);
         }else{
-          handlePostResponse();
+          responseHandler(config)
         }
       })
     });
@@ -117,8 +89,7 @@ export default config => {
   initializeFirebase(config.firebaseConfig);
 
   return {
-    postData: () => { postData(config) },
-    getNextData: () => { getNextData(config) },
-    getPrevData: () => { getPrevData(config) }
+    getData: (index, increment, responseHandler) => { getData(config, index, increment, responseHandler)},
+    postData: (responseHandler) => { postData(config, responseHandler)}
   }
 }

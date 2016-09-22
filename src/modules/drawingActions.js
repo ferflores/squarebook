@@ -20,7 +20,6 @@ function prepareToDraw(){
   _config.state.elements.nameInput.removeAttribute('readonly');
   _config.state.elements.nameInput.value = '';
   _config.state.currentIndex = 0;
-  _config.state.drawingIndex = 0;
   let colors = _config.state.elements.colors;
   for (var i = 0; i < colors.length; i++) {
     colors[i].style.display = 'inline';
@@ -39,7 +38,7 @@ function cancelDraw(){
   _config.state.elements.nameInput.value = `draw by: ${_config.state.currentName}`;
   _config.state.elements.nameInput.setAttribute('readonly', 'readonly');
   _config.state.currentIndex = 0;
-  _config.state.drawingIndex = 0;
+
   let colors = _config.state.elements.colors;
   for (var i = 0; i < colors.length; i++) {
     colors[i].style.display = 'none';
@@ -55,8 +54,6 @@ function drawDone(){
   _config.state.elements.nextButton.style.display = 'inline';
   _config.state.elements.prevButton.style.display = 'inline';
   _config.state.elements.cancelButton.style.display = 'none';
-  _config.state.drawingIndex = 0;
-  _config.state.currentIndex = -1;
   let colors = _config.state.elements.colors;
   for (var i = 0; i < colors.length; i++) {
     colors[i].style.display = 'none';
@@ -90,7 +87,7 @@ function drawData(data, currentIndex){
 }
 
 function drawPoints(points, currentIndex){
-  if(points.length < 1 || currentIndex != _config.state.drawingIndex || _config.state.drawMode){
+  if(points.length < 1 || currentIndex != _config.state.currentIndex || _config.state.drawMode){
     _config.state.drawingServerData = false;
     return;
   }

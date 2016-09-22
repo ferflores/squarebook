@@ -2,16 +2,14 @@ import loadStyles from './modules/styles';
 import ui from './modules/ui';
 import bindEvents from './modules/events';
 import serverActions from './modules/serverActions';
-import firebaseActions from './modules/firebaseActions';
 import drawingActions from './modules/drawingActions';
 
 let _config = {
   state: {
     currentColor: '#FF0000',
-    currentIndex: 0,
+    currentIndex: -1,
     currentName: '',
     currentPoints: [],
-    drawingIndex: 0,
     drawingServerData: false,
     loading: false,
     drawing:false,
@@ -57,7 +55,7 @@ function squarebook(config){
           are required in configuration, read README.MD file`);
     }else{
       _config = Object.assign(_config, config);
-      _config.serverActions = _config.firebaseConfig ? firebaseActions(_config) : serverActions(_config);
+      _config.serverActions = serverActions(_config);
       _config.drawingActions = drawingActions(_config);
       render();
       _config.serverActions.getNextData();

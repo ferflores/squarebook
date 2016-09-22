@@ -1,11 +1,12 @@
 var container = document.getElementById('container');
 
-/*squarebook({
+squarebook({
   container:container,
   getDataUrl:'http://localhost:3000/getData',
   postDataUrl: 'http://localhost:3000/postData'
-})*/
+});
 
+/*
 squarebook({
   container:container,
   firebaseConfig:{
@@ -15,4 +16,4 @@ squarebook({
     storageBucket: "myguestbook-a3cb4.appspot.com",
     messagingSenderId: "659560428906"
   }
-})
+})*/

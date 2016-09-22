@@ -62,11 +62,7 @@
 
 	var _serverActions2 = _interopRequireDefault(_serverActions);
 
-	var _firebaseActions = __webpack_require__(34);
-
-	var _firebaseActions2 = _interopRequireDefault(_firebaseActions);
-
-	var _drawingActions = __webpack_require__(38);
+	var _drawingActions = __webpack_require__(39);
 
 	var _drawingActions2 = _interopRequireDefault(_drawingActions);
 
@@ -75,10 +71,9 @@
 	var _config = {
 	  state: {
 	    currentColor: '#FF0000',
-	    currentIndex: 0,
+	    currentIndex: -1,
 	    currentName: '',
 	    currentPoints: [],
-	    drawingIndex: 0,
 	    drawingServerData: false,
 	    loading: false,
 	    drawing: false,
@@ -122,7 +117,7 @@
 	      throw new Error('squarebook: container, postDataUrl and getDataUrl or firebaseConfig\n          are required in configuration, read README.MD file');
 	    } else {
 	      _config = Object.assign(_config, config);
-	      _config.serverActions = _config.firebaseConfig ? (0, _firebaseActions2.default)(_config) : (0, _serverActions2.default)(_config);
+	      _config.serverActions = (0, _serverActions2.default)(_config);
 	      _config.drawingActions = (0, _drawingActions2.default)(_config);
 	      render();
 	      _config.serverActions.getNextData();
@@ -1170,114 +1165,68 @@
 
 	var _errorMessage2 = _interopRequireDefault(_errorMessage);
 
-	var _axios = __webpack_require__(11);
+	var _httpActions = __webpack_require__(11);
 
-	var _axios2 = _interopRequireDefault(_axios);
+	var _httpActions2 = _interopRequireDefault(_httpActions);
 
-	var _keyStorage = __webpack_require__(3);
+	var _firebaseActions = __webpack_require__(36);
 
-	var _keyStorage2 = _interopRequireDefault(_keyStorage);
+	var _firebaseActions2 = _interopRequireDefault(_firebaseActions);
 
 	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
-	var _config = null;
+	var serverActions = null;
 
-	function displayNoItemsData(config) {
-	  config.drawingActions.drawData(def.noData, -1);
-	}
-
-	function postData() {
-	  var name = document.getElementById('squarebook_nameInput');
-
-	  if (!_config.state.hasDrawData) {
-	    _errorMessage2.default.displayMessage(_config.state.elements.wrapper, 'Draw something!');
-	  } else if (name.value.length < 3) {
-	    _errorMessage2.default.displayMessage(_config.state.elements.wrapper, 'Please input your name!');
-	  } else {
-	    _config.state.elements.saveButton.removeEventListener('click', config.serverActions.postData);
-
-	    var data = {
-	      name: name.value,
-	      points: []
-	    };
-
-	    var squares = _config.state.elements.squares;
-
-	    for (var i = 0; i < squares.length; i++) {
-	      var color = squares[i].getAttribute('data-draw');
-	      if (color) {
-	        data.points.push({
-	          color: color,
-	          index: i
-	        });
-	      }
-	    }
-
-	    _axios2.default.post(_config.postDataUrl, data).then(function (response) {
-	      handlePostResponse();
-	    }).catch(function (error) {
-	      _errorMessage2.default.displayMessage(_config.state.elements.wrapper, error);
-	      _config.state.elements.saveButton.addEventListener('click', _config.serverActions.postData);
-	    });
-	  }
-	}
-
-	function handlePostResponse() {
-	  _errorMessage2.default.displayMessage(_config.state.elements.wrapper, 'Your draw has been saved, thanks!');
-	  _config.drawingActions.drawDone();
-	  getRequest(0, 1);
-	  _keyStorage2.default.set('signed', 'true');
-	}
-
-	function handleGetResponse(data, increment) {
-	  _config.state.drawingIndex = _config.state.currentIndex;
-	  _config.state.currentPoints = data.points.slice(0);
-	  _config.state.currentName = data.name;
-	  _config.drawingActions.drawData(data, _config.state.drawingIndex);
-	  _config.state.currentIndex += increment;
-	}
-
-	function getPrevData() {
-	  if (_config.state.loading || _config.state.currentIndex - 1 < 0) {
+	function _getNextData(config) {
+	  if (config.state.loading) {
 	    return;
 	  }
 
-	  getRequest(_config.state.currentIndex - 1, -1);
+	  if (!config.state.topIndex || config.state.currentIndex < config.state.topIndex) {
+	    config.state.currentIndex++;
+	    serverActions.getData(config.state.currentIndex, 1, handleGetResponse);
+	  }
 	}
 
-	function getNextData() {
-	  if (_config.state.loading || _config.state.topIndex && _config.state.currentIndex + 1 >= _config.state.topIndex) {
+	function _getPrevData(config) {
+	  if (config.state.loading) {
 	    return;
 	  }
 
-	  getRequest(_config.state.currentIndex + 1, 1);
+	  if (config.state.currentIndex > 0) {
+	    config.state.currentIndex--;
+	    serverActions.getData(config.state.currentIndex, -1, handleGetResponse);
+	  }
 	}
 
-	function getRequest(index, increment) {
-	  _config.drawingActions.clear();
-	  _config.state.elements.nameInput.value = 'loading...';
-	  _config.state.loading = true;
-	  _axios2.default.get(_config.getDataUrl + '/?index=' + index).then(function (response) {
-	    if (response.data) {
-	      handleGetResponse(response.data, increment);
-	    } else {
-	      _config.state.topIndex = index;
-	      displayNoItemsData(_config);
-	    }
-	    _config.state.loading = false;
-	  }).catch(function (error) {
-	    _errorMessage2.default.displayMessage(_config.state.elements.wrapper, error);
-	    _config.state.loading = false;
-	  });
+	function handleGetResponse(config, data) {
+	  config.state.ndex = config.state.currentIndex;
+	  config.state.currentPoints = data.points.slice(0);
+	  config.state.currentName = data.name;
+	  config.drawingActions.drawData(data, config.state.currentIndex);
+	}
+
+	function handlePostResponse(config) {
+	  _errorMessage2.default.displayMessage(config.state.elements.wrapper, 'Your draw has been saved, thanks!');
+	  config.drawingActions.drawDone();
+	  getRequest(config, 0, 1);
+	  storage.set('signed', 'true');
 	}
 
 	exports.default = function (config) {
-	  _config = config;
+
+	  serverActions = config.firebaseConfig ? (0, _firebaseActions2.default)(config) : (0, _httpActions2.default)(config);
 
 	  return {
-	    postData: postData,
-	    getNextData: getNextData,
-	    getPrevData: getPrevData
+	    postData: function postData() {
+	      serverActions.postData(handlePostResponse);
+	    },
+	    getNextData: function getNextData() {
+	      _getNextData(config);
+	    },
+	    getPrevData: function getPrevData() {
+	      _getPrevData(config);
+	    }
 	  };
 	};
 
@@ -1321,17 +1270,113 @@
 /* 11 */
 /***/ function(module, exports, __webpack_require__) {
 
-	module.exports = __webpack_require__(12);
+	'use strict';
+
+	Object.defineProperty(exports, "__esModule", {
+	  value: true
+	});
+
+	var _errorMessage = __webpack_require__(10);
+
+	var _errorMessage2 = _interopRequireDefault(_errorMessage);
+
+	var _axios = __webpack_require__(12);
+
+	var _axios2 = _interopRequireDefault(_axios);
+
+	var _defaultData = __webpack_require__(35);
+
+	var _defaultData2 = _interopRequireDefault(_defaultData);
+
+	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+	function displayNoItemsData(config) {
+	  config.drawingActions.drawData(_defaultData2.default.noData, -1);
+	  config.state.currentIndex++;
+	}
+
+	function _postData(config, responseHandler) {
+	  var name = document.getElementById('squarebook_nameInput');
+
+	  if (!config.state.hasDrawData) {
+	    _errorMessage2.default.displayMessage(config.state.elements.wrapper, 'Draw something!');
+	  } else if (name.value.length < 3) {
+	    _errorMessage2.default.displayMessage(config.state.elements.wrapper, 'Please input your name!');
+	  } else {
+	    config.state.elements.saveButton.removeEventListener('click', config.serverActions.postData);
+
+	    var data = {
+	      name: name.value,
+	      points: []
+	    };
+
+	    var squares = config.state.elements.squares;
+
+	    for (var i = 0; i < squares.length; i++) {
+	      var color = squares[i].getAttribute('data-draw');
+	      if (color) {
+	        data.points.push({
+	          color: color,
+	          index: i
+	        });
+	      }
+	    }
+
+	    _axios2.default.post(config.postDataUrl, data).then(function (response) {
+	      responseHandler(config);
+	    }).catch(function (error) {
+	      _errorMessage2.default.displayMessage(config.state.elements.wrapper, error);
+	      config.state.elements.saveButton.addEventListener('click', config.serverActions.postData);
+	    });
+	  }
+	}
+
+	function _getData(config, index, increment, responseHandler) {
+	  config.drawingActions.clear();
+	  config.state.elements.nameInput.value = 'loading...';
+	  config.state.loading = true;
+	  _axios2.default.get(config.getDataUrl + '/?index=' + index).then(function (response) {
+	    if (response.data) {
+	      responseHandler(config, response.data);
+	    } else {
+	      config.state.topIndex = index;
+	      displayNoItemsData(config);
+	      config.state.currentIndex -= increment;
+	    }
+	    config.state.loading = false;
+	  }).catch(function (error) {
+	    _errorMessage2.default.displayMessage(config.state.elements.wrapper, error);
+	    config.state.loading = false;
+	    config.state.currentIndex -= increment;
+	  });
+	}
+
+	exports.default = function (config) {
+	  return {
+	    getData: function getData(index, increment, responseHandler) {
+	      _getData(config, index, increment, responseHandler);
+	    },
+	    postData: function postData(responseHandler) {
+	      _postData(config, responseHandler);
+	    }
+	  };
+	};
 
 /***/ },
 /* 12 */
 /***/ function(module, exports, __webpack_require__) {
 
+	module.exports = __webpack_require__(13);
+
+/***/ },
+/* 13 */
+/***/ function(module, exports, __webpack_require__) {
+
 	'use strict';
 
-	var utils = __webpack_require__(13);
-	var bind = __webpack_require__(14);
-	var Axios = __webpack_require__(15);
+	var utils = __webpack_require__(14);
+	var bind = __webpack_require__(15);
+	var Axios = __webpack_require__(16);
 
 	/**
 	 * Create an instance of Axios
@@ -1367,7 +1412,7 @@
 	axios.all = function all(promises) {
 	  return Promise.all(promises);
 	};
-	axios.spread = __webpack_require__(33);
+	axios.spread = __webpack_require__(34);
 
 	module.exports = axios;
 
@@ -1376,12 +1421,12 @@
 
 
 /***/ },
-/* 13 */
+/* 14 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
 
-	var bind = __webpack_require__(14);
+	var bind = __webpack_require__(15);
 
 	/*global toString:true*/
 
@@ -1681,7 +1726,7 @@
 
 
 /***/ },
-/* 14 */
+/* 15 */
 /***/ function(module, exports) {
 
 	'use strict';
@@ -1698,17 +1743,17 @@
 
 
 /***/ },
-/* 15 */
+/* 16 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
 
-	var defaults = __webpack_require__(16);
-	var utils = __webpack_require__(13);
-	var InterceptorManager = __webpack_require__(18);
-	var dispatchRequest = __webpack_require__(19);
-	var isAbsoluteURL = __webpack_require__(31);
-	var combineURLs = __webpack_require__(32);
+	var defaults = __webpack_require__(17);
+	var utils = __webpack_require__(14);
+	var InterceptorManager = __webpack_require__(19);
+	var dispatchRequest = __webpack_require__(20);
+	var isAbsoluteURL = __webpack_require__(32);
+	var combineURLs = __webpack_require__(33);
 
 	/**
 	 * Create a new instance of Axios
@@ -1789,13 +1834,13 @@
 
 
 /***/ },
-/* 16 */
+/* 17 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
 
-	var utils = __webpack_require__(13);
-	var normalizeHeaderName = __webpack_require__(17);
+	var utils = __webpack_require__(14);
+	var normalizeHeaderName = __webpack_require__(18);
 
 	var PROTECTION_PREFIX = /^\)\]\}',?\n/;
 	var DEFAULT_CONTENT_TYPE = {
@@ -1867,12 +1912,12 @@
 
 
 /***/ },
-/* 17 */
+/* 18 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
 
-	var utils = __webpack_require__(13);
+	var utils = __webpack_require__(14);
 
 	module.exports = function normalizeHeaderName(headers, normalizedName) {
 	  utils.forEach(headers, function processHeader(value, name) {
@@ -1885,12 +1930,12 @@
 
 
 /***/ },
-/* 18 */
+/* 19 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
 
-	var utils = __webpack_require__(13);
+	var utils = __webpack_require__(14);
 
 	function InterceptorManager() {
 	  this.handlers = [];
@@ -1943,13 +1988,13 @@
 
 
 /***/ },
-/* 19 */
+/* 20 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/* WEBPACK VAR INJECTION */(function(process) {'use strict';
 
-	var utils = __webpack_require__(13);
-	var transformData = __webpack_require__(21);
+	var utils = __webpack_require__(14);
+	var transformData = __webpack_require__(22);
 
 	/**
 	 * Dispatch a request to the server using whichever adapter
@@ -1990,10 +2035,10 @@
 	    adapter = config.adapter;
 	  } else if (typeof XMLHttpRequest !== 'undefined') {
 	    // For browsers use XHR adapter
-	    adapter = __webpack_require__(22);
+	    adapter = __webpack_require__(23);
 	  } else if (typeof process !== 'undefined') {
 	    // For node use HTTP adapter
-	    adapter = __webpack_require__(22);
+	    adapter = __webpack_require__(23);
 	  }
 
 	  return Promise.resolve(config)
@@ -2022,10 +2067,10 @@
 	    });
 	};
 
-	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(20)))
+	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(21)))
 
 /***/ },
-/* 20 */
+/* 21 */
 /***/ function(module, exports) {
 
 	// shim for using process in browser
@@ -2211,12 +2256,12 @@
 
 
 /***/ },
-/* 21 */
+/* 22 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
 
-	var utils = __webpack_require__(13);
+	var utils = __webpack_require__(14);
 
 	/**
 	 * Transform the data for a request or a response
@@ -2237,18 +2282,18 @@
 
 
 /***/ },
-/* 22 */
+/* 23 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/* WEBPACK VAR INJECTION */(function(process) {'use strict';
 
-	var utils = __webpack_require__(13);
-	var settle = __webpack_require__(23);
-	var buildURL = __webpack_require__(26);
-	var parseHeaders = __webpack_require__(27);
-	var isURLSameOrigin = __webpack_require__(28);
-	var createError = __webpack_require__(24);
-	var btoa = (typeof window !== 'undefined' && window.btoa) || __webpack_require__(29);
+	var utils = __webpack_require__(14);
+	var settle = __webpack_require__(24);
+	var buildURL = __webpack_require__(27);
+	var parseHeaders = __webpack_require__(28);
+	var isURLSameOrigin = __webpack_require__(29);
+	var createError = __webpack_require__(25);
+	var btoa = (typeof window !== 'undefined' && window.btoa) || __webpack_require__(30);
 
 	module.exports = function xhrAdapter(config) {
 	  return new Promise(function dispatchXhrRequest(resolve, reject) {
@@ -2342,7 +2387,7 @@
 	    // This is only done if running in a standard browser environment.
 	    // Specifically not if we're in a web worker, or react-native.
 	    if (utils.isStandardBrowserEnv()) {
-	      var cookies = __webpack_require__(30);
+	      var cookies = __webpack_require__(31);
 
 	      // Add xsrf header
 	      var xsrfValue = (config.withCredentials || isURLSameOrigin(config.url)) && config.xsrfCookieName ?
@@ -2403,15 +2448,15 @@
 	  });
 	};
 
-	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(20)))
+	/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(21)))
 
 /***/ },
-/* 23 */
+/* 24 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
 
-	var createError = __webpack_require__(24);
+	var createError = __webpack_require__(25);
 
 	/**
 	 * Resolve or reject a Promise based on response status.
@@ -2437,12 +2482,12 @@
 
 
 /***/ },
-/* 24 */
+/* 25 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
 
-	var enhanceError = __webpack_require__(25);
+	var enhanceError = __webpack_require__(26);
 
 	/**
 	 * Create an Error with the specified message, config, error code, and response.
@@ -2460,7 +2505,7 @@
 
 
 /***/ },
-/* 25 */
+/* 26 */
 /***/ function(module, exports) {
 
 	'use strict';
@@ -2485,12 +2530,12 @@
 
 
 /***/ },
-/* 26 */
+/* 27 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
 
-	var utils = __webpack_require__(13);
+	var utils = __webpack_require__(14);
 
 	function encode(val) {
 	  return encodeURIComponent(val).
@@ -2559,12 +2604,12 @@
 
 
 /***/ },
-/* 27 */
+/* 28 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
 
-	var utils = __webpack_require__(13);
+	var utils = __webpack_require__(14);
 
 	/**
 	 * Parse headers into an object
@@ -2602,12 +2647,12 @@
 
 
 /***/ },
-/* 28 */
+/* 29 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
 
-	var utils = __webpack_require__(13);
+	var utils = __webpack_require__(14);
 
 	module.exports = (
 	  utils.isStandardBrowserEnv() ?
@@ -2676,7 +2721,7 @@
 
 
 /***/ },
-/* 29 */
+/* 30 */
 /***/ function(module, exports) {
 
 	'use strict';
@@ -2718,12 +2763,12 @@
 
 
 /***/ },
-/* 30 */
+/* 31 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
 
-	var utils = __webpack_require__(13);
+	var utils = __webpack_require__(14);
 
 	module.exports = (
 	  utils.isStandardBrowserEnv() ?
@@ -2777,7 +2822,7 @@
 
 
 /***/ },
-/* 31 */
+/* 32 */
 /***/ function(module, exports) {
 
 	'use strict';
@@ -2797,7 +2842,7 @@
 
 
 /***/ },
-/* 32 */
+/* 33 */
 /***/ function(module, exports) {
 
 	'use strict';
@@ -2815,7 +2860,7 @@
 
 
 /***/ },
-/* 33 */
+/* 34 */
 /***/ function(module, exports) {
 
 	'use strict';
@@ -2848,7 +2893,23 @@
 
 
 /***/ },
-/* 34 */
+/* 35 */
+/***/ function(module, exports) {
+
+	'use strict';
+
+	Object.defineProperty(exports, "__esModule", {
+	  value: true
+	});
+	exports.default = {
+	  noData: {
+	    name: 'no data :(',
+	    points: []
+	  }
+	};
+
+/***/ },
+/* 36 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -2857,48 +2918,36 @@
 	  value: true
 	});
 
-	var _app = __webpack_require__(35);
+	var _app = __webpack_require__(37);
 
 	var _app2 = _interopRequireDefault(_app);
 
-	var _database = __webpack_require__(36);
+	var _database = __webpack_require__(38);
 
 	var _database2 = _interopRequireDefault(_database);
 
-	var _defaultData = __webpack_require__(37);
+	var _defaultData = __webpack_require__(35);
 
 	var _defaultData2 = _interopRequireDefault(_defaultData);
+
+	var _errorMessage = __webpack_require__(10);
+
+	var _errorMessage2 = _interopRequireDefault(_errorMessage);
 
 	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 	var app = null;
 
-	function displayNoItemsData(config) {
-	  config.drawingActions.drawData(_defaultData2.default.noData, -1);
-	  config.state.currentIndex++;
-	  config.state.drawingIndex++;
-	}
-
 	function initializeFirebase(firebaseConfig) {
 	  app = _app2.default.initializeApp(firebaseConfig);
 	}
 
-	function _getNextData(config) {
-	  if (config.state.loading || config.state.topIndex && config.state.currentIndex + 1 >= config.state.topIndex) {
-	    return;
-	  }
-
-	  getRequest(config, config.state.currentIndex, 1);
+	function displayNoItemsData(config) {
+	  config.drawingActions.drawData(_defaultData2.default.noData, -1);
+	  config.state.currentIndex++;
 	}
 
-	function _getPrevData(config) {
-	  if (config.state.loading || config.state.currentIndex - 1 < 0) {
-	    return;
-	  }
-	  getRequest(config, config.state.currentIndex, -1);
-	}
-
-	function getRequest(config, index, increment) {
+	function _getData(config, index, increment, responseHandler) {
 	  config.drawingActions.clear();
 	  config.state.elements.nameInput.value = 'loading...';
 	  config.state.loading = true;
@@ -2906,46 +2955,33 @@
 	  var postRef = app.database().ref('/posts');
 	  postRef.once("value", function (snapshot) {
 	    var count = snapshot.numChildren();
-	    var getRef = app.database().ref('/posts/post' + (count - (index == 0 ? 1 : index + increment)));
+	    var getRef = app.database().ref('/posts/post' + (count - (index == 0 ? 1 : index + 1)));
 	    getRef.once('value', function (snapshot) {
 	      var value = snapshot.val();
 	      if (!value) {
 	        displayNoItemsData(config);
 	        config.state.topIndex = index;
+	        config.state.currentIndex -= increment;
 	      } else {
-	        handleGetResponse(config, snapshot.val(), increment);
+	        responseHandler(config, value);
 	      }
 	      config.state.loading = false;
 	    }, function (error) {
-	      errorMessage.displayMessage(_config.state.elements.wrapper, error);
+	      _errorMessage2.default.displayMessage(config.state.elements.wrapper, error);
 	      config.state.loading = false;
+	      config.state.currentIndex -= increment;
 	    });
 	  });
 	}
 
-	function handleGetResponse(config, data, increment) {
-	  config.state.drawingIndex = config.state.currentIndex;
-	  config.state.currentPoints = data.points.slice(0);
-	  config.state.currentName = data.name;
-	  config.drawingActions.drawData(data, config.state.drawingIndex);
-	  config.state.currentIndex += increment;
-	}
-
-	function handlePostResponse(config) {
-	  errorMessage.displayMessage(config.state.elements.wrapper, 'Your draw has been saved, thanks!');
-	  config.drawingActions.drawDone();
-	  getRequest(config, 0, 1);
-	  storage.set('signed', 'true');
-	}
-
-	function _postData(config) {
+	function _postData(config, responseHandler) {
 
 	  var name = document.getElementById('squarebook_nameInput');
 
 	  if (!config.state.hasDrawData) {
-	    errorMessage.displayMessage(config.state.elements.wrapper, 'Draw something!');
+	    _errorMessage2.default.displayMessage(config.state.elements.wrapper, 'Draw something!');
 	  } else if (name.value.length < 3) {
-	    errorMessage.displayMessage(config.state.elements.wrapper, 'Please input your name!');
+	    _errorMessage2.default.displayMessage(config.state.elements.wrapper, 'Please input your name!');
 	  } else {
 	    config.state.elements.saveButton.removeEventListener('click', config.serverActions.postData);
 
@@ -2971,10 +3007,10 @@
 	      var nextIndex = snapshot.numChildren();
 	      app.database().ref('/posts/post' + nextIndex).set(data, function (error) {
 	        if (error) {
-	          errorMessage.displayMessage(_config.state.elements.wrapper, error);
+	          _errorMessage2.default.displayMessage(config.state.elements.wrapper, error);
 	          config.state.elements.saveButton.addEventListener('click', config.serverActions.postData);
 	        } else {
-	          handlePostResponse();
+	          responseHandler(config);
 	        }
 	      });
 	    });
@@ -2986,20 +3022,17 @@
 	  initializeFirebase(config.firebaseConfig);
 
 	  return {
-	    postData: function postData() {
-	      _postData(config);
+	    getData: function getData(index, increment, responseHandler) {
+	      _getData(config, index, increment, responseHandler);
 	    },
-	    getNextData: function getNextData() {
-	      _getNextData(config);
-	    },
-	    getPrevData: function getPrevData() {
-	      _getPrevData(config);
+	    postData: function postData(responseHandler) {
+	      _postData(config, responseHandler);
 	    }
 	  };
 	};
 
 /***/ },
-/* 35 */
+/* 37 */
 /***/ function(module, exports) {
 
 	/* WEBPACK VAR INJECTION */(function(global) {/*! @license Firebase v3.4.0
@@ -3036,10 +3069,10 @@
 	/* WEBPACK VAR INJECTION */}.call(exports, (function() { return this; }())))
 
 /***/ },
-/* 36 */
+/* 38 */
 /***/ function(module, exports, __webpack_require__) {
 
-	var firebase = __webpack_require__(35);
+	var firebase = __webpack_require__(37);
 	/*! @license Firebase v3.4.0
 	    Build: 3.4.0-rc.3
 	    Terms: https://developers.google.com/terms */
@@ -3287,23 +3320,7 @@
 
 
 /***/ },
-/* 37 */
-/***/ function(module, exports) {
-
-	'use strict';
-
-	Object.defineProperty(exports, "__esModule", {
-	  value: true
-	});
-	exports.default = {
-	  noData: {
-	    name: 'no data :(',
-	    points: []
-	  }
-	};
-
-/***/ },
-/* 38 */
+/* 39 */
 /***/ function(module, exports) {
 
 	'use strict';
@@ -3333,7 +3350,6 @@
 	  _config.state.elements.nameInput.removeAttribute('readonly');
 	  _config.state.elements.nameInput.value = '';
 	  _config.state.currentIndex = 0;
-	  _config.state.drawingIndex = 0;
 	  var colors = _config.state.elements.colors;
 	  for (var i = 0; i < colors.length; i++) {
 	    colors[i].style.display = 'inline';
@@ -3352,7 +3368,7 @@
 	  _config.state.elements.nameInput.value = 'draw by: ' + _config.state.currentName;
 	  _config.state.elements.nameInput.setAttribute('readonly', 'readonly');
 	  _config.state.currentIndex = 0;
-	  _config.state.drawingIndex = 0;
+
 	  var colors = _config.state.elements.colors;
 	  for (var i = 0; i < colors.length; i++) {
 	    colors[i].style.display = 'none';
@@ -3368,8 +3384,6 @@
 	  _config.state.elements.nextButton.style.display = 'inline';
 	  _config.state.elements.prevButton.style.display = 'inline';
 	  _config.state.elements.cancelButton.style.display = 'none';
-	  _config.state.drawingIndex = 0;
-	  _config.state.currentIndex = -1;
 	  var colors = _config.state.elements.colors;
 	  for (var i = 0; i < colors.length; i++) {
 	    colors[i].style.display = 'none';
@@ -3403,7 +3417,7 @@
 	}
 
 	function drawPoints(points, currentIndex) {
-	  if (points.length < 1 || currentIndex != _config.state.drawingIndex || _config.state.drawMode) {
+	  if (points.length < 1 || currentIndex != _config.state.currentIndex || _config.state.drawMode) {
 	    _config.state.drawingServerData = false;
 	    return;
 	  }
