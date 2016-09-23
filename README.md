@@ -37,6 +37,8 @@ It looks like this:
 
 ![preview image](doc/preview.gif)
 
+Live demo at: http://ferflores.net
+
 Squarebook has also integration with firebase:
 
 ```
