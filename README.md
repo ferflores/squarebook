@@ -31,7 +31,6 @@ cd example/server
 npm install
 node index.js
 ```
-And open example/index.html in your browser
 
 It looks like this:
 
