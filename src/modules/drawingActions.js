@@ -99,7 +99,7 @@ function drawPoints(points, currentIndex, force){
   setTimeout(() => {
     points.splice(rand,1);
     drawPoints(points, currentIndex, force);
-  }, 50);
+  }, _config.drawSquareInterval || 50);
 }
 
 export default config => {
