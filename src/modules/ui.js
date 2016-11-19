@@ -103,7 +103,7 @@ function createInputs(){
   let signButton = document.createElement('div');
   signButton.className = 'squarebook_navButton';
   signButton.style.float = 'left';
-  signButton.style.display = storage.get('sign') ? 'none' : 'inline';
+  signButton.style.display = storage.get('sign') || isMoble() ? 'none' : 'inline'; //mobile touch events not supported yet
   controlsWrapper.appendChild(signButton);
   elements.signButton = signButton;
 
@@ -201,6 +201,10 @@ function adjustUI(){
 
 function bindEvents(){
   window.addEventListener('resize', ()=>{setTimeout(adjustUI,1000)});
+}
+
+function isMoble(){
+   return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
 }
 
 export default config => {
